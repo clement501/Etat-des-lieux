@@ -26,7 +26,7 @@
   --border:#d9cfc0; --shadow:0 4px 20px rgba(26,23,20,.10);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);overflow:hidden;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 
 /* ── SCREENS ── */
 .screen{display:none;flex-direction:column;height:100dvh;overflow:hidden;}
@@ -74,7 +74,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .home-logo span{color:var(--rust);}
 .home-sub{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;}
 .home-btns{width:100%;display:flex;flex-direction:column;gap:12px;}
-.btn-home{width:100%;padding:18px 24px;border:1.5px solid var(--border);border-radius:16px;background:var(--white);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--dark);display:flex;align-items:center;gap:14px;transition:box-shadow .2s;}
+.btn-home{width:100%;padding:18px 24px;border:1.5px solid var(--border);border-radius:16px;background:var(--white);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--dark);display:flex;align-items:center;gap:14px;transition:box-shadow .2s;}
 .btn-home:active{box-shadow:var(--shadow);}
 .btn-home-icon{font-size:24px;}
 .btn-home-text{text-align:left;}
@@ -1240,7 +1240,7 @@ function buildReportHTML(s) {
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('sw.js').catch(function(e) { console.warn(e); });
+      navigator.serviceWorker.register('sw.js', { scope: '/Etat-des-lieux/' }).catch(function(e) { console.warn('SW:', e); });
     });
   }
 </script>
