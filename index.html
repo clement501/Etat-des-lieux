@@ -1,43 +1,1696 @@
-État des
-Lieux
-Réalisez vos états des lieux
-de façon simple et complète
-📋
-Nouvel état des lieux
-Entrée ou sortie de logement
-📂
-Mes états des lieux
-Consulter les rapports enregistrés
-`; return html; } // ─── IMAGE COMPRESSION ─────────────────────────── function compressImage(src, maxW, maxH, quality) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = img.width, h = img.height; if (w > maxW || h > maxH) { const ratio = Math.min(maxW/w, maxH/h); w = Math.round(w*ratio); h = Math.round(h*ratio); } const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h); resolve(canvas.toDataURL('image/jpeg', quality)); }; img.onerror = () => resolve(src); img.src = src; }); } // ─── INDEXEDDB ─────────────────────────────────── const DB_NAME = 'edl_db', DB_VERSION = 1; let _db = null; function openDB() { if (_db) return Promise.resolve(_db); return new Promise((resolve, reject) => { const req = indexedDB.open(DB_NAME, DB_VERSION); req.onupgradeneeded = e => { const db = e.target.result; if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'id' }); if (!db.objectStoreNames.contains('blobs')) db.createObjectStore('blobs', { keyPath: 'id' }); }; req.onsuccess = e => { _db = e.target.result; resolve(_db); }; req.onerror = e => reject(e.target.error); }); } function dbSet(store, obj) { return openDB().then(db => new Promise((res, rej) => { const tx = db.transaction(store,'readwrite'); tx.objectStore(store).put(obj); tx.oncomplete = () => res(true); tx.onerror = e => rej(e.target.error); })); } function dbGet(store, id) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).get(id); req.onsuccess = e => res(e.target.result||null); req.onerror = e => rej(e.target.error); })); } function dbDel(store, id) { return openDB().then(db => new Promise((res, rej) => { const tx = db.transaction(store,'readwrite'); tx.objectStore(store).delete(id); tx.oncomplete = () => res(true); tx.onerror = e => rej(e.target.error); })); } function dbGetAll(store) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).getAll(); req.onsuccess = e => res(e.target.result||[]); req.onerror = e => rej(e.target.error); })); } function dbGetAllKeys(store) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).getAllKeys(); req.onsuccess = e => res(e.target.result||[]); req.onerror = e => rej(e.target.error); })); } // ── CLÉS ───────────────────────────────────────────────────────── function openAddCle() { document.getElementById('input-cle-titre').value = ''; openModal('add-cle-modal'); } function confirmAddCle() { const titre = document.getElementById('input-cle-titre').value.trim() || 'Clés'; state.cles = state.cles || []; state.cles.push({ id: uid(), titre: titre, photos: [] }); closeModal('add-cle-modal'); renderCles(); } function renderCles() { const container = document.getElementById('cles-list'); if (!container) return; container.innerHTML = ''; (state.cles || []).forEach(cle => { const card = document.createElement('div'); card.className = 'compteur-card'; card.dataset.cleId = cle.id; card.style.cursor = 'pointer'; card.innerHTML = '
-🔑
-' + cle.titre + '
-' + cle.photos.length + ' photo' + (cle.photos.length !== 1 ? 's' : '') + '
-✕'; container.appendChild(card); }); } function getClePhoto(cleId, photoId) { const cle = (state.cles || []).find(c => c.id === cleId); return cle ? cle.photos.find(p => p.id === photoId) : null; } function openCleDetail(cleId) { state.currentCleId = cleId; state.currentClePhotoId = null; const cle = (state.cles || []).find(c => c.id === cleId); if (!cle) return; document.getElementById('cle-detail-titre').textContent = '🔑 ' + cle.titre; document.getElementById('cle-detail-sub').textContent = cle.photos.length + ' photo' + (cle.photos.length !== 1 ? 's' : ''); renderCleDetail(); goTo('cle-detail'); } function renderCleDetail() { var cle = (state.cles || []).find(c => c.id === state.currentCleId); if (!cle) return; document.getElementById('cle-detail-sub').textContent = cle.photos.length + ' photo' + (cle.photos.length !== 1 ? 's' : ''); var grid = document.getElementById('cle-photos-grid'); var html = ''; var etatColors = { 'Bon état':'#2e6b3e', 'Usure normale':'#92620a', 'Dégradation':'#b91c1c' }; for (var i = 0; i < cle.photos.length; i++) { var photo = cle.photos[i]; var badge = photo.etat ? '
-' + photo.etat + '
-' : ''; var dot = photo.comments.length > 0 ? '
-
-' : ''; html += '
-' + '
-￼
-' + badge + dot + '✕' + '
-'; } html += '' + '
-📷
-Ajouter'; grid.innerHTML = html; } function openClePhotoModal(photoId) { state.currentClePhotoId = photoId; const photo = getClePhoto(state.currentCleId, photoId); if (!photo) return; document.getElementById('cle-modal-photo-img').src = photo.src; document.querySelectorAll('#cle-photo-modal .etat-chip').forEach(c => c.classList.toggle('selected', c.dataset.etat === photo.etat)); renderCleComments(photo); openModal('cle-photo-modal'); } function toggleCleEtat(el, etat) { const photo = getClePhoto(state.currentCleId, state.currentClePhotoId); const already = photo.etat === etat; photo.etat = already ? '' : etat; document.querySelectorAll('#cle-photo-modal .etat-chip').forEach(c => c.classList.remove('selected')); if (!already) el.classList.add('selected'); renderCleDetail(); } function renderCleComments(photo) { const list = document.getElementById('cle-comments-list'); list.innerHTML = ''; photo.comments.forEach((c, i) => { const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;'; const bubble = document.createElement('div'); bubble.style.cssText = 'flex:1;background:var(--warm);border-radius:10px;padding:8px 10px;font-size:13px;'; bubble.innerHTML = '' + c.text + '' + c.time + ''; const del = document.createElement('button'); del.style.cssText = 'background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;'; del.textContent = '✕'; del.addEventListener('click', () => { photo.comments.splice(i, 1); renderCleComments(photo); renderCleDetail(); }); row.appendChild(bubble); row.appendChild(del); list.appendChild(row); }); } function addCleComment() { const photo = getClePhoto(state.currentCleId, state.currentClePhotoId); if (!photo) return; const input = document.getElementById('cle-comment-input'); const text = input.value.trim(); if (!text) return; photo.comments.push({ text, time: new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) }); input.value = ''; renderCleComments(photo); renderCleDetail(); closeModal('cle-photo-modal'); } function handleCleCommentKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addCleComment(); } } function deleteClePhoto(photoId) { showConfirm('Supprimer cette photo et ses commentaires ?', () => { const cle = (state.cles || []).find(c => c.id === state.currentCleId); cle.photos = cle.photos.filter(p => p.id !== photoId); renderCleDetail(); }); } function handleCleFileSelect(event) { const cle = (state.cles || []).find(c => c.id === state.currentCleId); if (!cle) { event.target.value = ''; return; } Array.from(event.target.files).forEach(file => { const reader = new FileReader(); reader.onload = async ev => { const src = await compressImage(ev.target.result, 1200, 1200, 0.75); cle.photos.push({ id: uid(), src, etat: '', comments: [] }); renderCleDetail(); }; reader.readAsDataURL(file); }); event.target.value = ''; } // ─── ARCHIVE ───────────────────────────────────── async function saveToArchive() { try { const id = 'edl_' + Date.now(); const roomsLight = await Promise.all(state.rooms.map(async (room, ri) => ({ ...room, photos: await Promise.all(room.photos.map(async (photo, pi) => { const blobId = `${id}_photo_${ri}_${pi}`; const compressed = await compressImage(photo.src, 1200, 1200, 0.82); await dbSet('blobs', { id: blobId, data: compressed }); return { ...photo, src: `__blob__${blobId}` }; })) }))); const clesLight = await Promise.all((state.cles || []).map(async (cle, ci) => ({ ...cle, photos: await Promise.all(cle.photos.map(async (photo, pi) => { const blobId = `${id}_cle_${ci}_${pi}`; const compressed = await compressImage(photo.src, 1200, 1200, 0.82); await dbSet('blobs', { id: blobId, data: compressed }); return { ...photo, src: `__blob__${blobId}` }; })) }))); const sigsLight = {}; if (state.signatures) { await Promise.all(Object.entries(state.signatures).map(async ([k, v]) => { const blobId = `${id}_sig_${k}`; await dbSet('blobs', { id: blobId, data: v }); sigsLight[k] = `__blob__${blobId}`; })); } const record = { id, savedAt: new Date().toISOString(), type: state.type, adresse: state.adresse, proprietaire: state.proprietaire, proprietaireEmail: state.proprietaireEmail || '', locataires: state.locataires, date: state.date, sigLieu: state.sigLieu || '', compteurs: state.compteurs || [], roomsCount: state.rooms.length, photosCount: state.rooms.reduce((s,r) => s + r.photos.length, 0), rooms: roomsLight, cles: clesLight, signatures: sigsLight, }; await dbSet('records', record); return id; } catch(e) { console.error('Erreur sauvegarde:', e); alert('⚠️ Impossible de sauvegarder dans "Mes états des lieux" :\n' + e.message); return null; } } async function renderArchive() { const container = document.getElementById('archive-list'); container.innerHTML = '
-Chargement…
-'; try { const records = await dbGetAll('records'); records.sort((a,b) => b.savedAt.localeCompare(a.savedAt)); document.getElementById('archive-sub').textContent = records.length === 0 ? 'Aucun dossier' : `${records.length} dossier${records.length > 1 ? 's' : ''}`; if (records.length === 0) { container.innerHTML = `
-📂
-Aucun rapport enregistré
-Vos rapports générés apparaîtront ici.
-`; return; } container.innerHTML = ''; records.forEach(rec => { const dateEdl = rec.date ? new Date(rec.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—'; const savedDate = new Date(rec.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}); const typeColor = rec.type === 'entree' ? 'var(--sage)' : 'var(--rust)'; const typeLabel = rec.type === 'entree' ? 'ENTRÉE' : 'SORTIE'; const card = document.createElement('div'); card.style.cssText = 'background:var(--white);border:1.5px solid var(--border);border-radius:16px;margin:0 20px 14px;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s;'; card.onmouseenter = () => card.style.boxShadow = '0 4px 20px rgba(26,23,20,0.10)'; card.onmouseleave = () => card.style.boxShadow = 'none'; card.dataset.archiveId = rec.id; card.innerHTML = `
-${rec.adresse||'—'}
-${typeLabel}
-📅 ${dateEdl}  ·  🏠 ${rec.roomsCount} pièce${rec.roomsCount>1?'s':''}  ·  📷 ${rec.photosCount} photo${rec.photosCount>1?'s':''}
-👤 ${rec.proprietaire||'—'}  ·  Généré le ${savedDate}
-Voir le rapport →
-📤 🗑️ `; container.appendChild(card); }); } catch(e) { container.innerHTML = `
-Erreur : ${e.message}
-`; } } async function openViewer(id) { try { const rec = await dbGet('records', id); if (!rec) { alert('Rapport introuvable.'); return; } const rooms = await Promise.all((rec.rooms||[]).map(async room => ({ ...room, photos: await Promise.all((room.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) }))); const signatures = {}; if (rec.signatures) { await Promise.all(Object.entries(rec.signatures).map(async ([k, v]) => { if (v && v.startsWith('__blob__')) { const blob = await dbGet('blobs', v.replace('__blob__','')); signatures[k] = blob ? blob.data : ''; } else { signatures[k] = v; } })); } const cles = await Promise.all((rec.cles||[]).map(async cle => ({ ...cle, photos: await Promise.all((cle.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) }))); const snap = { ...rec, rooms, cles, signatures, compteurs: rec.compteurs||[] }; const html = buildReportHTML(snap); const dateEdl = rec.date ? new Date(rec.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : ''; document.getElementById('viewer-title').textContent = rec.adresse||'Rapport'; document.getElementById('viewer-sub').textContent = (rec.type==='entree'?'Entrée':'Sortie') + (dateEdl?' · '+dateEdl:''); const frame = document.getElementById('viewer-frame'); frame.srcdoc = html; frame._htmlContent = html; goTo('viewer'); } catch(e) { console.error(e); alert('Erreur : ' + e.message); } } function viewerPrint() { const frame = document.getElementById('viewer-frame'); if (frame.contentWindow) frame.contentWindow.print(); } // ─── EMAIL SHARE ───────────────────────────────── async function shareReport(id) { try { const rec = await dbGet('records', id); if (!rec) { alert('Rapport introuvable.'); return; } // Résoudre tous les blobs const rooms = await Promise.all((rec.rooms||[]).map(async room => ({ ...room, photos: await Promise.all((room.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) }))); const cles = await Promise.all((rec.cles||[]).map(async cle => ({ ...cle, photos: await Promise.all((cle.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) }))); const signatures = {}; if (rec.signatures) { await Promise.all(Object.entries(rec.signatures).map(async ([k, v]) => { if (v && v.startsWith('__blob__')) { const blob = await dbGet('blobs', v.replace('__blob__','')); signatures[k] = blob ? blob.data : ''; } else { signatures[k] = v; } })); } const snap = { ...rec, rooms, cles, signatures, compteurs: rec.compteurs||[] }; const html = buildReportHTML(snap); const adresse = (rec.adresse||'rapport').replace(/[^a-zA-Z0-9]/g,'_').slice(0,40); const dateStr = rec.date ? rec.date.replace(/-/g,'') : 'sans-date'; const typeStr = rec.type === 'entree' ? 'entree' : 'sortie'; const filename = 'EDL_' + typeStr + '_' + adresse + '_' + dateStr + '.html'; // HTML avec impression automatique au chargement const htmlWithPrint = html.replace('', 'window.addEventListener("load",function(){setTimeout(function(){window.print();},600);});'); const blob = new Blob([htmlWithPrint], { type: 'text/html;charset=utf-8' }); const url = URL.createObjectURL(blob); const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; if (isIOS) { // Sur iOS : ouvrir dans un nouvel onglet — l'utilisateur utilise le bouton partage de Safari window.open(url, '_blank'); } else if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([htmlWithPrint], filename, { type: 'text/html' })] })) { const file = new File([htmlWithPrint], filename, { type: 'text/html' }); try { await navigator.share({ title: 'EDL — ' + (rec.adresse||''), files: [file] }); } catch(shareErr) { if (shareErr.name !== 'AbortError') { const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); } } } else { const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); } setTimeout(() => URL.revokeObjectURL(url), 30000); } catch(e) { if (e.name !== 'AbortError') { console.error(e); alert('Erreur : ' + e.message); } } } function deleteArchiveEntry(id) { showConfirm( `Supprimer ce rapport ?
-
-Cette action supprimera définitivement l'état des lieux ainsi que toutes les photos, commentaires et signatures associés.
-
-⚠ Cette action est irréversible.`, async () => { const allKeys = await dbGetAllKeys('blobs'); await Promise.all(allKeys.filter(k => String(k).startsWith(id+'_')).map(k => dbDel('blobs', k))); await dbDel('records', id); renderArchive(); } ); } // ─── MODALS ────────────────────────────────────── function openModal(id) { document.getElementById(id).classList.add('open'); } function closeModal(id) { document.getElementById(id).classList.remove('open'); } function showConfirm(message, onConfirm) { const overlay = document.getElementById('confirm-modal'); document.getElementById('confirm-message').innerHTML = message; overlay.classList.add('open'); const btnOk = document.getElementById('confirm-ok'); const btnCancel = document.getElementById('confirm-cancel'); const newOk = btnOk.cloneNode(true); const newCancel = btnCancel.cloneNode(true); btnOk.parentNode.replaceChild(newOk, btnOk); btnCancel.parentNode.replaceChild(newCancel, btnCancel); newOk.addEventListener('click', () => { overlay.classList.remove('open'); onConfirm(); }); newCancel.addEventListener('click', () => overlay.classList.remove('open')); } // ─── UTILS ─────────────────────────────────────── function uid() { return Math.random().toString(36).slice(2,9); } function locNom(l) { return typeof l === 'object' ? (l.nom || '') : (l || ''); } function locEmail(l) { return typeof l === 'object' ? (l.email || '') : ''; } // ─── INIT ───────────────────────────────────────── document.getElementById('input-date').valueAsDate = new Date(); document.getElementById('btn-open-gallery').addEventListener('click', function() { closeModal('photo-source-modal'); document.getElementById('file-input-gallery').click(); }); document.getElementById('btn-open-camera').addEventListener('click', function() { closeModal('photo-source-modal'); document.getElementById('file-input-camera').click(); }); document.getElementById('file-input-gallery').addEventListener('change', handleFileSelect); document.getElementById('file-input-camera').addEventListener('change', handleFileSelect); // ── Délégation rooms-list ──────────────────────────────────────── document.getElementById('rooms-list').addEventListener('click', function(e) { var delBtn = e.target.closest('[data-delete-id]'); if (delBtn) { e.stopPropagation(); deleteRoom(delBtn.getAttribute('data-delete-id')); return; } var card = e.target.closest('[data-room-id]'); if (card) { openRoom(card.getAttribute('data-room-id')); } }); // ── Délégation photos-grid ─────────────────────────────────────── document.getElementById('photos-grid').addEventListener('click', function(e) { var delBtn = e.target.closest('[data-delete-photo]'); if (delBtn) { e.stopPropagation(); deletePhoto(delBtn.getAttribute('data-delete-photo')); return; } var addBtn = e.target.closest('#add-photo-btn'); if (addBtn) { openModal('photo-source-modal'); return; } var wrap = e.target.closest('[data-photo-id]'); if (wrap) { openPhotoModal(wrap.getAttribute('data-photo-id')); } }); document.getElementById('archive-list').addEventListener('click', function(e) { var shareBtn = e.target.closest('[data-share-id]'); if (shareBtn) { e.stopPropagation(); shareReport(shareBtn.getAttribute('data-share-id')); return; } var deleteBtn = e.target.closest('[data-delete-id]'); if (deleteBtn) { e.stopPropagation(); deleteArchiveEntry(deleteBtn.getAttribute('data-delete-id')); return; } var card = e.target.closest('[data-archive-id]'); if (card) openViewer(card.getAttribute('data-archive-id')); }); document.getElementById('cle-file-gallery').addEventListener('change', handleCleFileSelect); document.getElementById('cle-file-camera').addEventListener('change', handleCleFileSelect); document.getElementById('cle-btn-open-gallery').addEventListener('click', function() { closeModal('cle-photo-source-modal'); document.getElementById('cle-file-gallery').click(); }); document.getElementById('cle-btn-open-camera').addEventListener('click', function() { closeModal('cle-photo-source-modal'); document.getElementById('cle-file-camera').click(); }); document.getElementById('cles-list').addEventListener('click', function(e) { var d = e.target.closest('[data-delete-cle]'); if (d) { e.stopPropagation(); showConfirm('Supprimer cette remise de clés ?', function() { state.cles=(state.cles||[]).filter(function(c){return c.id!==d.getAttribute('data-delete-cle');}); renderCles(); }); return; } var card = e.target.closest('[data-cle-id]'); if (card) openCleDetail(card.getAttribute('data-cle-id')); }); document.getElementById('cle-photos-grid').addEventListener('click', function(e) { var delBtn = e.target.closest('[data-delete-cle-photo]'); if (delBtn) { e.stopPropagation(); deleteClePhoto(delBtn.getAttribute('data-delete-cle-photo')); return; } var addBtn = e.target.closest('#add-cle-photo-btn'); if (addBtn) { openModal('cle-photo-source-modal'); return; } var wrap = e.target.closest('[data-cle-photo-id]'); if (wrap) { openClePhotoModal(wrap.getAttribute('data-cle-photo-id')); } });
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="theme-color" content="#f5f0e8"/>
+<title>État des Lieux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+ 
+<style>
+:root {
+  --cream:#f5f0e8; --warm:#ede6d6; --white:#fffef9;
+  --rust:#c4622d; --rust-light:#e8896a;
+  --sage:#7a9e87; --sage-light:#a8c5b0;
+  --dark:#1a1714; --brown:#3d2f1f; --muted:#8c7b6b;
+  --border:#d9cfc0; --shadow:0 4px 20px rgba(26,23,20,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);overflow:hidden;}
+ 
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;height:100dvh;overflow:hidden;}
+.screen.active{display:flex;}
+ 
+/* ── TOP BAR ── */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;}
+.top-bar-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;}
+.top-bar-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.btn-back{width:36px;height:36px;border-radius:10px;background:var(--warm);border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.top-bar-right{width:36px;display:flex;justify-content:flex-end;}
+ 
+/* ── SCROLLABLE BODY ── */
+.screen-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 120px;}
+ 
+/* ── FORM ── */
+.form-group{margin-bottom:20px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+input[type="text"],input[type="date"],input[type="email"],textarea,select{width:100%;padding:14px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--dark);outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+input:focus,textarea:focus{border-color:var(--rust);}
+.required-star{color:var(--rust);}
+.error-msg{display:none;font-size:12px;color:var(--rust);margin-top:6px;font-weight:500;}
+.field-error .error-msg{display:block;}
+.field-error input,.field-error textarea{border-color:var(--rust)!important;}
+ 
+/* ── TYPE TOGGLE ── */
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.toggle-btn{padding:14px;border:1.5px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;text-align:center;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--muted);}
+.toggle-btn.selected{border-color:var(--rust);background:rgba(196,98,45,.06);color:var(--rust);font-weight:600;}
+.toggle-icon{font-size:20px;display:block;margin-bottom:4px;}
+ 
+/* ── LOCATAIRES ── */
+.locataire-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;animation:fadeUp .2s ease both;}
+.locataire-row input[type="text"],.locataire-row input[type="email"]{margin-bottom:0!important;flex:1;min-width:0;width:auto!important;}
+.locataire-num{width:24px;height:24px;background:var(--rust);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.btn-remove-locataire{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+ 
+/* ── BTN START ── */
+.btn-start{display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 40px);margin:0 20px 24px;padding:18px;background:linear-gradient(135deg,var(--rust),var(--rust-light));color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s;flex-shrink:0;}
+.btn-start:active{opacity:.85;}
+ 
+/* ── HOME ── */
+.home-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:32px;}
+.home-logo{font-family:'Fraunces',serif;font-size:32px;font-weight:700;text-align:center;}
+.home-logo span{color:var(--rust);}
+.home-sub{font-size:14px;color:var(--muted);text-align:center;line-height:1.6;}
+.home-btns{width:100%;display:flex;flex-direction:column;gap:12px;}
+.btn-home{width:100%;padding:18px 24px;border:1.5px solid var(--border);border-radius:16px;background:var(--white);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--dark);display:flex;align-items:center;gap:14px;transition:box-shadow .2s;}
+.btn-home:active{box-shadow:var(--shadow);}
+.btn-home-icon{font-size:24px;}
+.btn-home-text{text-align:left;}
+.btn-home-label{font-size:15px;font-weight:600;}
+.btn-home-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.btn-home.primary{background:linear-gradient(135deg,var(--rust),var(--rust-light));color:white;border-color:transparent;}
+.btn-home.primary .btn-home-desc{color:rgba(255,255,255,.75);}
+ 
+/* ── ROOMS ── */
+.rooms-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.progress-bar-wrap{height:3px;background:var(--border);}
+.progress-bar{height:100%;background:var(--sage);transition:width .4s ease;}
+.room-card{margin:0 20px 12px;background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow .2s;}
+.room-card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.room-icon{font-size:22px;}
+.room-info{flex:1;}
+.room-name{font-size:15px;font-weight:600;}
+.room-count{font-size:12px;color:var(--muted);margin-top:2px;}
+.btn-delete-room{width:28px;height:28px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;border-radius:6px;}
+.room-thumb-strip{display:flex;gap:6px;padding:0 14px 12px;overflow-x:auto;}
+.room-thumb{width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+.room-thumb.has-comment{outline:2px solid var(--rust);}
+.rooms-empty{padding:48px 24px;text-align:center;color:var(--muted);}
+ 
+.section-card{margin:0 20px 12px;background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px;}
+.section-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin-bottom:14px;color:var(--brown);}
+.compteur-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--warm);border-radius:10px;margin-bottom:8px;}
+.compteur-icon{font-size:20px;flex-shrink:0;}
+.compteur-info{flex:1;}
+.compteur-label{font-size:13px;font-weight:600;}
+.compteur-numero{font-size:11px;color:var(--muted);}
+.compteur-releve{font-size:14px;font-weight:700;color:var(--rust);}
+.compteur-delete{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px;}
+.btn-add-compteur{width:100%;padding:10px;background:rgba(196,98,45,.07);border:1.5px dashed rgba(196,98,45,.35);border-radius:10px;color:var(--rust);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;}
+.btn-sign-wrap{padding:16px 20px 0;}
+.btn-sign{width:100%;padding:16px;background:linear-gradient(135deg,var(--sage),var(--sage-light));color:white;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;}
+.btn-sign:disabled{opacity:.4;cursor:not-allowed;}
+ 
+/* ── ROOM DETAIL ── */
+.photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px;}
+ 
+/* ── SIGNATURES ── */
+.sig-block{background:var(--white);border:1.5px solid var(--border);border-radius:16px;margin-bottom:14px;overflow:hidden;}
+.sig-block.signed{border-color:var(--sage);}
+.sig-block-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+.sig-block-name{font-size:15px;font-weight:600;}
+.sig-block-role{font-size:12px;color:var(--muted);margin-top:2px;}
+.sig-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--warm);color:var(--muted);}
+.sig-status.done{background:rgba(122,158,135,.15);color:var(--sage);}
+.sig-canvas-wrap{padding:14px 16px;}
+.sig-canvas{width:100%;height:140px;border:1.5px solid var(--border);border-radius:10px;cursor:crosshair;touch-action:none;display:block;background:var(--white);}
+.sig-canvas.active{border-color:var(--rust);}
+.sig-hint{font-size:11px;color:var(--muted);margin-top:6px;text-align:center;}
+.sig-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-sig-clear{flex:1;padding:10px;background:var(--warm);border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);}
+.btn-sig-validate{flex:2;padding:10px;background:linear-gradient(135deg,var(--sage),var(--sage-light));border:none;border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.sig-validated-img{width:100%;height:80px;object-fit:contain;display:block;}
+.btn-sig-redo{margin-top:8px;background:none;border:none;color:var(--rust);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;}
+#btn-pdf-final{width:calc(100% - 32px);margin:0 16px 16px;padding:18px;background:linear-gradient(135deg,var(--rust),var(--rust-light));color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;flex-shrink:0;}
+#btn-pdf-final:disabled{opacity:.4;cursor:not-allowed;}
+.sig-missing-msg{display:none;background:rgba(196,98,45,.08);border:1.5px solid rgba(196,98,45,.3);border-radius:10px;padding:10px 14px;margin:0 16px 12px;font-size:13px;color:var(--rust);font-weight:500;}
+ 
+/* ── ARCHIVE ── */
+.archive-body{padding:20px 0;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+ 
+/* ── VIEWER ── */
+.viewer-body{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.viewer-frame{flex:1;border:none;width:100%;}
+ 
+/* ── NAV BAR ── */
+.nav-bar{display:flex;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+.nav-btn{flex:1;padding:10px 6px 12px;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;}
+.nav-btn.active{color:var(--rust);}
+.nav-icon{font-size:20px;}
+ 
+/* ── MODALS ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(26,23,20,.5);align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:var(--white);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:24px 20px calc(40px + env(safe-area-inset-bottom,0px));max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:16px;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+.btn-modal-cancel{flex:1;padding:14px;background:var(--warm);border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);}
+.btn-modal-confirm{flex:2;padding:14px;background:linear-gradient(135deg,var(--rust),var(--rust-light));border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+ 
+/* ── PRESETS ── */
+.presets-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.preset-btn{padding:10px 6px;background:var(--warm);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.preset-btn.selected{border-color:var(--rust);background:rgba(196,98,45,.07);}
+.preset-icon{font-size:20px;display:block;margin-bottom:4px;}
+.preset-name{font-size:11px;font-weight:600;color:var(--dark);}
+ 
+/* ── PHOTO MODAL ── */
+.photo-modal-img{width:100%;border-radius:14px;object-fit:cover;max-height:260px;display:block;margin-bottom:14px;}
+.etat-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.etat-chip{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--dark);transition:all .15s;}
+.etat-chip.selected{border-color:var(--rust);background:rgba(196,98,45,.08);color:var(--rust);}
+.comment-input-wrap{display:flex;gap:8px;margin-top:10px;}
+.comment-input-wrap textarea{flex:1;padding:10px 12px;border-radius:10px;resize:none;height:44px;font-size:14px;}
+.btn-add-comment{padding:10px 14px;background:var(--rust);color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;}
+ 
+/* ── COMPTEUR MODAL ── */
+.ctype-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ctype-btn{padding:10px;background:var(--warm);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.ctype-btn.selected{border-color:var(--rust);background:rgba(196,98,45,.07);}
+.ctype-icon{font-size:20px;display:block;margin-bottom:2px;}
+.ctype-label{font-size:11px;font-weight:600;}
+ 
+/* ── EMAIL MODALS ── */
+.setup-step{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start;}
+.setup-num{width:24px;height:24px;border-radius:50%;background:var(--rust);color:white;font-size:12px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.setup-text{font-size:13px;color:var(--dark);line-height:1.5;}
+.setup-text a{color:var(--rust);}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--rust);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+ 
+/* ── PDF OVERLAY ── */
+#pdf-generating{display:none;position:fixed;inset:0;z-index:200;background:rgba(26,23,20,.6);align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+#pdf-generating.show{display:flex;}
+#pdf-generating p{color:white;font-weight:600;}
+</style>
+</head>
+<body>
+ 
+<!-- ══ HOME ══ -->
+<div class="screen active" id="home">
+  <div class="home-inner">
+    <div>
+      <div class="home-logo">État des<br/><span>Lieux</span></div>
+      <div class="home-sub" style="margin-top:8px">Réalisez vos états des lieux<br/>de façon simple et complète</div>
+    </div>
+    <div class="home-btns">
+      <button class="btn-home primary" onclick="newEdl()">
+        <span class="btn-home-icon">📋</span>
+        <div class="btn-home-text">
+          <div class="btn-home-label">Nouvel état des lieux</div>
+          <div class="btn-home-desc">Entrée ou sortie de logement</div>
+        </div>
+      </button>
+      <button class="btn-home" onclick="goTo('archive');renderArchive()">
+        <span class="btn-home-icon">📂</span>
+        <div class="btn-home-text">
+          <div class="btn-home-label">Mes états des lieux</div>
+          <div class="btn-home-desc">Consulter les rapports enregistrés</div>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══ SETUP ══ -->
+<div class="screen" id="setup">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('home')">←</button>
+    <div><div class="top-bar-title">Informations</div><div class="top-bar-sub">Renseignez le logement</div></div>
+    <div class="top-bar-right"></div>
+  </div>
+  <div class="screen-body">
+    <div class="form-group">
+      <label>Type d'état des lieux</label>
+      <div class="type-toggle">
+        <button class="toggle-btn selected" id="toggle-entree" onclick="selectType('entree')"><span class="toggle-icon">🔑</span>Entrée</button>
+        <button class="toggle-btn" id="toggle-sortie" onclick="selectType('sortie')"><span class="toggle-icon">📦</span>Sortie</button>
+      </div>
+    </div>
+    <div class="form-group" id="fg-adresse">
+      <label>Adresse du logement <span class="required-star">*</span></label>
+      <input type="text" id="input-adresse" placeholder="12 rue des Lilas, 75010 Paris"/>
+      <div class="error-msg">⚠ L'adresse est obligatoire</div>
+    </div>
+    <div class="form-group" id="fg-proprietaire">
+      <label>Propriétaire <span class="required-star">*</span></label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="input-proprietaire" placeholder="Prénom Nom" style="flex:1;min-width:0;width:auto!important;margin-bottom:0;"/>
+        <input type="email" id="input-proprietaire-email" placeholder="Email" style="flex:1;min-width:0;width:auto!important;margin-bottom:0;"/>
+      </div>
+      <div class="error-msg" id="err-proprietaire-nom" style="display:none">⚠ Le nom du propriétaire est obligatoire</div>
+      <div class="error-msg" id="err-proprietaire-email" style="display:none">⚠ L'email du propriétaire est obligatoire</div>
+    </div>
+    <div class="form-group" id="fg-locataires">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <label style="margin-bottom:0">Locataire(s) <span class="required-star">*</span></label>
+        <button id="btn-add-locataire" onclick="addLocataireField()" style="display:flex;align-items:center;gap:5px;background:rgba(196,98,45,.08);border:1.5px solid rgba(196,98,45,.3);color:var(--rust);border-radius:8px;padding:4px 10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">＋ Ajouter</button>
+      </div>
+      <div id="locataires-list">
+        <div class="locataire-row" id="locataire-row-0">
+          <input type="text" class="locataire-input" placeholder="Prénom Nom"/>
+          <input type="email" class="locataire-email" placeholder="Email"/>
+        </div>
+      </div>
+      <div class="error-msg" id="err-locataire-nom" style="display:none">⚠ Au moins un locataire est obligatoire</div>
+      <div class="error-msg" id="err-locataire-email" style="display:none">⚠ L'email du locataire est obligatoire</div>
+    </div>
+    <div class="form-group" id="fg-date">
+      <label>Date <span class="required-star">*</span></label>
+      <input type="date" id="input-date"/>
+      <div class="error-msg">⚠ La date est obligatoire</div>
+    </div>
+  </div>
+  <button class="btn-start" onclick="startEdl()" id="btn-start">Commencer l'état des lieux →</button>
+</div>
+ 
+<!-- ══ ROOMS ══ -->
+<div class="screen" id="rooms">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('setup');restoreSetupFields()">←</button>
+    <div><div class="top-bar-title" id="rooms-title">Pièces</div><div class="top-bar-sub" id="rooms-sub">0 pièce</div></div>
+    <span id="rooms-badge" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--sage);color:white;">ENTRÉE</span>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="rooms-progress" style="width:0%"></div></div>
+  <div class="rooms-body">
+    <div style="height:16px"></div>
+    <div class="section-card" style="margin-bottom:12px;padding:16px">
+      <div style="text-align:center;padding:8px 0 14px">
+        <div style="font-size:40px;margin-bottom:8px">🏠</div>
+        <div style="font-size:15px;font-weight:600;color:var(--dark);margin-bottom:4px" id="rooms-empty-title">Aucune pièce</div>
+        <div style="font-size:13px;color:var(--muted)" id="rooms-empty-sub">Appuyez sur ＋ pour ajouter une pièce</div>
+      </div>
+      <button class="btn-add-compteur" onclick="openAddRoom()" style="width:100%;margin-top:0">＋ Ajouter une pièce</button>
+    </div>
+    <div id="rooms-empty" class="rooms-empty" style="display:none">
+    </div>
+    <div id="rooms-list"></div>
+    <div class="section-card" style="margin-top:8px">
+      <div class="section-title">🔑 Remise des clés</div>
+      <div id="cles-list"></div>
+      <button class="btn-add-compteur" onclick="openAddCle()">＋ Ajouter des clés</button>
+    </div>
+    <div class="section-card" style="margin-top:8px">
+      <div class="section-title">📊 Relevés de compteurs</div>
+      <div id="compteurs-list"></div>
+      <button class="btn-add-compteur" onclick="openAddCompteur()">＋ Ajouter un relevé</button>
+    </div>
+    <div class="btn-sign-wrap">
+      <button class="btn-sign" id="btn-sign" onclick="goTo('signatures');renderSignatures()" disabled>✍️ Passer à la signature</button>
+    </div>
+    <div style="height:100px"></div>
+  </div>
+</div>
+ 
+<!-- ══ ROOM DETAIL ══ -->
+<div class="screen" id="room-detail">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('rooms');renderRooms()">←</button>
+    <div><div class="top-bar-title" id="detail-title">Pièce</div><div class="top-bar-sub" id="detail-sub">0 photo</div></div>
+    <div class="top-bar-right"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div class="photos-grid" id="photos-grid"></div>
+  </div>
+  <input type="file" id="file-input-gallery" accept="image/*" multiple style="display:none"/>
+  <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none"/>
+<input type="file" id="cle-file-gallery" accept="image/*" multiple style="display:none"/>
+<input type="file" id="cle-file-camera" accept="image/*" capture="environment" style="display:none"/>
+</div>
+ 
+<!-- ══ SIGNATURES ══ -->
+<!-- ══ CLÉ DETAIL ══ -->
+<div class="screen" id="cle-detail">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('rooms');renderRooms()">←</button>
+    <div><div class="top-bar-title" id="cle-detail-titre">Clés</div><div class="top-bar-sub" id="cle-detail-sub">0 photo</div></div>
+    <div class="top-bar-right"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div class="photos-grid" id="cle-photos-grid"></div>
+  </div>
+</div>
+ 
+<div class="screen" id="signatures">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('rooms')">←</button>
+    <div><div class="top-bar-title">Signatures</div><div class="top-bar-sub" id="sig-progress-sub">0 / 0 signatures</div></div>
+    <div class="top-bar-right"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px;">
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px;">
+      <div class="form-group" style="margin-bottom:12px" id="fg-sig-lieu">
+        <label>Lieu de signature <span class="required-star">*</span></label>
+        <input type="text" id="input-sig-lieu" placeholder="ex. Paris, Lyon…" oninput="updateSigFooter()"/>
+        <div class="error-msg">⚠ Le lieu est obligatoire</div>
+      </div>
+      <div><label>Date de l'état des lieux</label>
+        <div id="sig-date-display" style="padding:12px 14px;background:var(--warm);border-radius:10px;font-size:14px;color:var(--muted)"></div>
+      </div>
+    </div>
+    <div id="sig-blocks"></div>
+    <div class="sig-missing-msg" id="sig-missing-msg">⚠ Toutes les signatures sont requises avant de générer le rapport.</div>
+  </div>
+  <button id="btn-pdf-final" onclick="tryGeneratePDF()" disabled>📄 Générer le rapport PDF</button>
+</div>
+ 
+<!-- ══ ARCHIVE ══ -->
+<div class="screen" id="archive">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('home')">←</button>
+    <div><div class="top-bar-title">Mes états des lieux</div><div class="top-bar-sub" id="archive-sub">Chargement…</div></div>
+    <div class="top-bar-right"></div>
+  </div>
+  <div class="archive-body" id="archive-list"></div>
+</div>
+ 
+<!-- ══ VIEWER ══ -->
+<div class="screen" id="viewer">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('archive');renderArchive()">←</button>
+    <div><div class="top-bar-title" id="viewer-title">Rapport</div><div class="top-bar-sub" id="viewer-sub"></div></div>
+    <button onclick="viewerPrint()" style="background:var(--warm);border:none;border-radius:10px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;">🖨️</button>
+  </div>
+  <div class="viewer-body"><iframe id="viewer-frame" class="viewer-frame"></iframe></div>
+</div>
+ 
+<!-- PDF overlay -->
+<div id="pdf-generating">
+  <div class="spinner" style="width:40px;height:40px;border-color:rgba(255,255,255,.3);border-top-color:white;"></div>
+  <p>Génération du rapport…</p>
+</div>
+ 
+<!-- ══ MODALS ══ -->
+ 
+<!-- Add room -->
+<div class="modal-overlay" id="add-room-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ajouter une pièce</div>
+    <div class="presets-grid" id="room-presets"></div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Nom personnalisé</label>
+      <input type="text" id="custom-room-name" placeholder="ex. Dressing, Véranda…"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('add-room-modal')">Annuler</button>
+      <button class="btn-modal-confirm" onclick="confirmAddRoom()">Ajouter</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Photo source -->
+<div class="modal-overlay" id="photo-source-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ajouter une photo</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="btn-open-camera" style="padding:16px;background:var(--warm);border:1.5px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">📷 Prendre une photo</button>
+      <button id="btn-open-gallery" style="padding:16px;background:var(--warm);border:1.5px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🖼️ Choisir depuis la galerie</button>
+    </div>
+    <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('photo-source-modal')">Annuler</button>
+  </div>
+</div>
+ 
+<!-- Photo detail -->
+<div class="modal-overlay" id="photo-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <img id="modal-photo-img" class="photo-modal-img" src="" alt=""/>
+    <div class="etat-chips">
+      <button class="etat-chip" data-etat="Bon état" onclick="toggleEtat(this,'Bon état')">✅ Bon état</button>
+      <button class="etat-chip" data-etat="Usure normale" onclick="toggleEtat(this,'Usure normale')">🔶 Usure normale</button>
+      <button class="etat-chip" data-etat="Dégradation" onclick="toggleEtat(this,'Dégradation')">🔴 Dégradation</button>
+    </div>
+    <div id="comments-list"></div>
+    <div class="comment-input-wrap">
+      <textarea id="comment-input" placeholder="Ajouter un commentaire…" onkeydown="handleCommentKey(event)"></textarea>
+      <button class="btn-add-comment" onclick="addComment()">↑</button>
+    </div>
+    <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('photo-modal')">Fermer</button>
+  </div>
+</div>
+ 
+<!-- Add compteur -->
+<div class="modal-overlay" id="add-compteur-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Relevé de compteur</div>
+    <div class="ctype-grid">
+      <button class="ctype-btn selected" id="ctype-elec" onclick="selectCompteurType('elec')"><span class="ctype-icon">⚡</span><span class="ctype-label">Électricité</span></button>
+      <button class="ctype-btn" id="ctype-gaz" onclick="selectCompteurType('gaz')"><span class="ctype-icon">🔥</span><span class="ctype-label">Gaz</span></button>
+      <button class="ctype-btn" id="ctype-eau_froide" onclick="selectCompteurType('eau_froide')"><span class="ctype-icon">💧</span><span class="ctype-label">Eau froide</span></button>
+      <button class="ctype-btn" id="ctype-eau_chaude" onclick="selectCompteurType('eau_chaude')"><span class="ctype-icon">🌡️</span><span class="ctype-label">Eau chaude</span></button>
+    </div>
+    <div class="form-group">
+      <label>Numéro de compteur (optionnel)</label>
+      <input type="text" id="input-compteur-numero" placeholder="ex. 123456789"/>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Relevé <span class="required-star">*</span></label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="text" id="input-compteur-releve" placeholder="0000" style="flex:1;"/>
+        <span id="compteur-unite" style="font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap">kWh</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('add-compteur-modal')">Annuler</button>
+      <button class="btn-modal-confirm" onclick="confirmAddCompteur()">Ajouter</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Confirm -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="confirm-message" style="font-size:14px;color:var(--dark);line-height:1.6;margin-bottom:4px;"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="confirm-cancel">Annuler</button>
+      <button class="btn-modal-confirm" id="confirm-ok" style="background:linear-gradient(135deg,#b91c1c,#ef4444)">Supprimer</button>
+    </div>
+  </div>
+</div>
+ 
+ 
+<div class="spinner" id="email-spinner"></div>
+    <div id="email-sending-status" style="font-size:15px;font-weight:500;margin:16px 0;color:var(--dark)">Envoi en cours…</div>
+    <button id="email-sending-close" onclick="closeModal('email-sending-modal')" class="btn-modal-cancel" style="display:none;width:100%">Fermer</button>
+  </div>
+</div>
+ 
+ 
+<div class="modal-overlay" id="add-cle-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Remise des clés</div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Titre <span style="color:var(--muted);font-weight:400">(optionnel)</span></label>
+      <input type="text" id="input-cle-titre" placeholder="ex. Clé principale, Badge…"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('add-cle-modal')">Annuler</button>
+      <button class="btn-modal-confirm" onclick="confirmAddCle()">Ajouter</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="cle-photo-source-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ajouter une photo</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="cle-btn-open-camera" style="padding:16px;background:var(--warm);border:1.5px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">📷 Prendre une photo</button>
+      <button id="cle-btn-open-gallery" style="padding:16px;background:var(--warm);border:1.5px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🖼️ Choisir depuis la galerie</button>
+    </div>
+    <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('cle-photo-source-modal')">Annuler</button>
+  </div>
+</div>
+<div class="modal-overlay" id="cle-photo-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <img id="cle-modal-photo-img" class="photo-modal-img" src="" alt=""/>
+    <div class="etat-chips">
+      <button class="etat-chip" data-etat="Bon état" onclick="toggleCleEtat(this,'Bon état')">✅ Bon état</button>
+      <button class="etat-chip" data-etat="Usure normale" onclick="toggleCleEtat(this,'Usure normale')">🔶 Usure normale</button>
+      <button class="etat-chip" data-etat="Dégradation" onclick="toggleCleEtat(this,'Dégradation')">🔴 Dégradation</button>
+    </div>
+    <div id="cle-comments-list"></div>
+    <div class="comment-input-wrap">
+      <textarea id="cle-comment-input" placeholder="Ajouter un commentaire…" onkeydown="handleCleCommentKey(event)"></textarea>
+      <button class="btn-add-comment" onclick="addCleComment()">↑</button>
+    </div>
+    <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('cle-photo-modal')">Fermer</button>
+  </div>
+</div>
+<script>
+ 
+ 
+ 
+// ─── STATE ───────────────────────────────────────
+const state = {
+  type: 'entree',
+  adresse: '',
+  proprietaire: '',
+  proprietaireEmail: '',
+  locataires: [{ nom: '', email: '' }],
+  date: '',
+  rooms: [],
+  compteurs: [],
+  cles: [],
+  signatures: {},
+  sigLieu: '',
+  currentRoomId: null,
+  currentPhotoId: null,
+  currentCleId: null,
+  currentClePhotoId: null,
+  selectedPreset: null,
+  _started: false,
+};
+ 
+// ─── NAVIGATION ──────────────────────────────────
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+ 
+function newEdl() {
+  Object.assign(state, {
+    type: 'entree', adresse: '', proprietaire: '', proprietaireEmail: '',
+    locataires: [{ nom: '', email: '' }], date: '', rooms: [], compteurs: [], cles: [],
+    signatures: {}, sigLieu: '', currentRoomId: null, currentPhotoId: null,
+    selectedPreset: null, _started: false,
+  });
+  document.getElementById('input-adresse').value = '';
+  document.getElementById('input-proprietaire').value = '';
+  document.getElementById('input-proprietaire-email').value = '';
+  document.getElementById('input-date').valueAsDate = new Date();
+  const list = document.getElementById('locataires-list');
+  list.innerHTML = `<div class="locataire-row" id="locataire-row-0">
+    <input type="text" class="locataire-input" placeholder="Prénom Nom"/>
+    <input type="email" class="locataire-email" placeholder="Email"/>
+  </div>`;
+  const btnAdd = document.getElementById('btn-add-locataire');
+  btnAdd.style.opacity = '1'; btnAdd.style.pointerEvents = 'auto';
+  ['fg-adresse','fg-proprietaire','fg-locataires','fg-date'].forEach(id => {
+    document.getElementById(id).classList.remove('field-error');
+  });
+  ['err-proprietaire-nom','err-proprietaire-email','err-locataire-nom','err-locataire-email'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  selectType('entree');
+  goTo('setup');
+}
+ 
+// ─── SETUP ───────────────────────────────────────
+function selectType(type) {
+  state.type = type;
+  document.getElementById('toggle-entree').classList.toggle('selected', type === 'entree');
+  document.getElementById('toggle-sortie').classList.toggle('selected', type === 'sortie');
+}
+ 
+function addLocataireField() {
+  const list = document.getElementById('locataires-list');
+  const rows = list.querySelectorAll('.locataire-row');
+  if (rows.length >= 2) return;
+  const idx = rows.length;
+  const row = document.createElement('div');
+  row.className = 'locataire-row';
+  row.id = `locataire-row-${idx}`;
+  row.innerHTML = `
+    <div class="locataire-num">${idx + 1}</div>
+    <input type="text" class="locataire-input" placeholder="Prénom Nom"/>
+    <input type="email" class="locataire-email" placeholder="Email (optionnel)"/>
+    <button class="btn-remove-locataire" onclick="removeLocataireField(this)" title="Supprimer">−</button>
+  `;
+  list.appendChild(row);
+  const firstRow = document.getElementById('locataire-row-0');
+  if (!firstRow.querySelector('.locataire-num')) {
+    firstRow.insertAdjacentHTML('afterbegin', '<div class="locataire-num">1</div>');
+  }
+  if (list.querySelectorAll('.locataire-row').length >= 2) {
+    document.getElementById('btn-add-locataire').style.opacity = '0.35';
+    document.getElementById('btn-add-locataire').style.pointerEvents = 'none';
+  }
+}
+ 
+function removeLocataireField(btn) {
+  const row = btn.closest('.locataire-row');
+  row.remove();
+  const list = document.getElementById('locataires-list');
+  const remaining = list.querySelectorAll('.locataire-row');
+  if (remaining.length === 1) {
+    remaining[0].id = 'locataire-row-0';
+    remaining[0].querySelector('.locataire-num')?.remove();
+  }
+  document.getElementById('btn-add-locataire').style.opacity = '1';
+  document.getElementById('btn-add-locataire').style.pointerEvents = 'auto';
+}
+ 
+function restoreSetupFields() {
+  const btnStart = document.getElementById('btn-start');
+  if (btnStart) {
+    btnStart.textContent = state._started && state.rooms.length > 0
+      ? '← Retour aux pièces' : 'Commencer l\'état des lieux →';
+  }
+  selectType(state.type);
+  if (state.adresse) document.getElementById('input-adresse').value = state.adresse;
+  if (state.proprietaire) document.getElementById('input-proprietaire').value = state.proprietaire;
+  if (state.proprietaireEmail) document.getElementById('input-proprietaire-email').value = state.proprietaireEmail;
+  if (state.date) document.getElementById('input-date').value = state.date;
+  ['fg-adresse','fg-proprietaire','fg-locataires','fg-date'].forEach(id => {
+    document.getElementById(id).classList.remove('field-error');
+  });
+  const realLocataires = state.locataires.filter(l => l && locNom(l));
+  if (realLocataires.length === 0) return;
+  const list = document.getElementById('locataires-list');
+  list.innerHTML = '';
+  realLocataires.forEach((loc, idx) => {
+    const showNum = realLocataires.length > 1;
+    const nom = locNom(loc); const email = locEmail(loc);
+    const row = document.createElement('div');
+    row.className = 'locataire-row'; row.id = `locataire-row-${idx}`;
+    row.innerHTML = `
+      ${showNum ? `<div class="locataire-num">${idx + 1}</div>` : ''}
+      <input type="text" class="locataire-input" placeholder="Prénom Nom" value="${nom}"/>
+      <input type="email" class="locataire-email" placeholder="Email" value="${email}"/>
+      ${idx > 0 ? `<button class="btn-remove-locataire" onclick="removeLocataireField(this)" title="Supprimer">−</button>` : ''}
+    `;
+    list.appendChild(row);
+  });
+  const btnAdd = document.getElementById('btn-add-locataire');
+  if (realLocataires.length >= 2) {
+    btnAdd.style.opacity = '0.35'; btnAdd.style.pointerEvents = 'none';
+  } else {
+    btnAdd.style.opacity = '1'; btnAdd.style.pointerEvents = 'auto';
+  }
+}
+ 
+function startEdl() {
+  const adresse = document.getElementById('input-adresse').value.trim();
+  const proprietaire = document.getElementById('input-proprietaire').value.trim();
+  const proprietaireEmail = document.getElementById('input-proprietaire-email').value.trim();
+  const locataireInputs = document.querySelectorAll('.locataire-input');
+  const locatairesRemplis = Array.from(locataireInputs).map(i => i.value.trim()).filter(v => v.length > 0);
+  const locataireEmailInput = document.querySelector('#locataire-row-0 .locataire-email');
+  const locataireEmail = locataireEmailInput ? locataireEmailInput.value.trim() : '';
+  const date = document.getElementById('input-date').value;
+ 
+  const setError = (id, hasError) => document.getElementById(id).classList.toggle('field-error', hasError);
+  const showMsg = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? 'block' : 'none'; };
+ 
+  setError('fg-adresse', !adresse);
+  setError('fg-proprietaire', !proprietaire || !proprietaireEmail);
+  showMsg('err-proprietaire-nom', !proprietaire);
+  showMsg('err-proprietaire-email', proprietaire && !proprietaireEmail);
+  setError('fg-locataires', locatairesRemplis.length === 0 || !locataireEmail);
+  showMsg('err-locataire-nom', locatairesRemplis.length === 0);
+  showMsg('err-locataire-email', locatairesRemplis.length > 0 && !locataireEmail);
+  setError('fg-date', !date);
+ 
+  if (!adresse || !proprietaire || !proprietaireEmail || locatairesRemplis.length === 0 || !locataireEmail || !date) return;
+ 
+  state.adresse = adresse;
+  state.proprietaire = proprietaire;
+  state.proprietaireEmail = proprietaireEmail;
+  state.date = date;
+ 
+  const rows = document.querySelectorAll('.locataire-row');
+  state.locataires = Array.from(rows).map(row => {
+    const nom = (row.querySelector('.locataire-input')?.value || '').trim();
+    const email = (row.querySelector('.locataire-email')?.value || '').trim();
+    return nom ? { nom, email } : null;
+  }).filter(Boolean);
+ 
+  if (!state._started) { state.rooms = []; state._started = true; }
+  document.getElementById('rooms-title').textContent = state.adresse;
+  document.getElementById('rooms-badge').textContent = state.type === 'entree' ? 'ENTRÉE' : 'SORTIE';
+  document.getElementById('rooms-badge').style.background = state.type === 'entree' ? 'var(--sage)' : 'var(--rust)';
+  goTo('rooms');
+  renderRooms();
+}
+ 
+// ─── ROOMS ───────────────────────────────────────
+function renderRooms() {
+  var list = document.getElementById('rooms-list');
+  var empty = document.getElementById('rooms-empty');
+  var sub = document.getElementById('rooms-sub');
+  var progress = document.getElementById('rooms-progress');
+  var n = state.rooms.length;
+  sub.textContent = n === 0 ? 'Aucune pi\u00e8ce' : n + ' pi\u00e8ce' + (n > 1 ? 's' : '');
+  var photosDone = 0;
+  for (var i = 0; i < state.rooms.length; i++) { if (state.rooms[i].photos.length > 0) photosDone++; }
+  empty.style.display = 'none';
+  var emptyTitle = document.getElementById('rooms-empty-title');
+  var emptySub = document.getElementById('rooms-empty-sub');
+  if (emptyTitle) emptyTitle.textContent = n === 0 ? 'Aucune pièce' : n + ' pièce' + (n > 1 ? 's' : '') + ' ajoutée' + (n > 1 ? 's' : '');
+  if (emptySub) emptySub.textContent = n === 0 ? 'Appuyez sur ＋ pour ajouter une pièce' : '';
+  var btnSign = document.getElementById('btn-sign');
+  if (btnSign) btnSign.disabled = n === 0;
+  progress.style.width = n > 0 ? Math.round((photosDone / n) * 100) + '%' : '0%';
+  var html = '';
+  for (var ri = 0; ri < state.rooms.length; ri++) {
+    var room = state.rooms[ri];
+    var thumbs = '';
+    if (room.photos.length > 0) {
+      thumbs = '<div class="room-thumb-strip">';
+      for (var pi = 0; pi < room.photos.length; pi++) {
+        var p = room.photos[pi];
+        thumbs += '<img class="room-thumb' + (p.comments.length > 0 ? ' has-comment' : '') + '" src="' + p.src + '"/>';
+      }
+      thumbs += '</div>';
+    }
+    var pc = room.photos.length;
+    html += '<div class="room-card" data-room-id="' + room.id + '">'
+          + '<div class="room-card-header" style="cursor:pointer">'
+          + '<div class="room-icon">' + room.icon + '</div>'
+          + '<div class="room-info" style="flex:1">'
+          + '<div class="room-name">' + room.name + '</div>'
+          + '<div class="room-count">' + pc + ' photo' + (pc !== 1 ? 's' : '') + '</div>'
+          + '</div>'
+          + '<button class="btn-delete-room" data-delete-id="' + room.id + '" title="Supprimer">\u2715</button>'
+          + '<span style="color:var(--muted);font-size:18px;margin-left:6px">\u203a</span>'
+          + '</div>'
+          + thumbs
+          + '</div>';
+  }
+  list.innerHTML = html;
+}
+ 
+// ─── COMPTEURS ───────────────────────────────────
+const COMPTEUR_TYPES = {
+  elec:       { label: 'Électricité', icon: '⚡', unite: 'kWh' },
+  gaz:        { label: 'Gaz',         icon: '🔥', unite: 'm³'  },
+  eau_froide: { label: 'Eau froide',  icon: '💧', unite: 'm³'  },
+  eau_chaude: { label: 'Eau chaude',  icon: '🌡️', unite: 'm³'  },
+};
+let selectedCompteurType = 'elec';
+ 
+function openAddCompteur() {
+  selectedCompteurType = 'elec'; selectCompteurType('elec');
+  document.getElementById('input-compteur-numero').value = '';
+  document.getElementById('input-compteur-releve').value = '';
+  openModal('add-compteur-modal');
+}
+function selectCompteurType(type) {
+  selectedCompteurType = type;
+  ['elec','gaz','eau_froide','eau_chaude'].forEach(t => document.getElementById(`ctype-${t}`).classList.toggle('selected', t === type));
+  document.getElementById('compteur-unite').textContent = COMPTEUR_TYPES[type].unite;
+}
+function confirmAddCompteur() {
+  const releve = document.getElementById('input-compteur-releve').value.trim();
+  if (!releve) { document.getElementById('input-compteur-releve').focus(); return; }
+  const numero = document.getElementById('input-compteur-numero').value.trim();
+  if (!state.compteurs) state.compteurs = [];
+  state.compteurs.push({ id: uid(), type: selectedCompteurType, numero, releve, unite: COMPTEUR_TYPES[selectedCompteurType].unite });
+  closeModal('add-compteur-modal'); renderCompteurs();
+}
+function renderCompteurs() {
+  const container = document.getElementById('compteurs-list');
+  if (!container) return;
+  container.innerHTML = '';
+  (state.compteurs || []).forEach(c => {
+    const t = COMPTEUR_TYPES[c.type] || { label: c.type, icon: '📊', unite: '' };
+    const card = document.createElement('div');
+    card.className = 'compteur-card';
+    card.innerHTML = `<div class="compteur-icon">${t.icon}</div><div class="compteur-info"><div class="compteur-label">${t.label}</div><div class="compteur-numero">${c.numero || 'N° non renseigné'}</div></div><div class="compteur-releve">${c.releve} ${c.unite}</div><button class="compteur-delete" title="Supprimer">✕</button>`;
+    card.querySelector('.compteur-delete').addEventListener('click', () => showConfirm('Supprimer ce relevé de compteur ?', () => { state.compteurs = state.compteurs.filter(x => x.id !== c.id); renderCompteurs(); }));
+    container.appendChild(card);
+  });
+}
+ 
+// ─── PRESETS ─────────────────────────────────────
+const PRESETS = [
+  { name: 'Entrée', icon: '🚪' }, { name: 'Salon', icon: '🛋️' }, { name: 'Cuisine', icon: '🍳' },
+  { name: 'Chambre', icon: '🛏️' }, { name: 'Salle de bain', icon: '🚿' }, { name: 'WC', icon: '🚽' },
+  { name: 'Bureau', icon: '💼' }, { name: 'Garage', icon: '🚗' }, { name: 'Cave', icon: '📦' },
+];
+function openAddRoom() {
+  state.selectedPreset = null;
+  document.getElementById('custom-room-name').value = '';
+  const grid = document.getElementById('room-presets');
+  grid.innerHTML = '';
+  PRESETS.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn'; btn.dataset.index = i;
+    btn.innerHTML = `<span class="preset-icon">${p.icon}</span><span class="preset-name">${p.name}</span>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected'); state.selectedPreset = i;
+    });
+    grid.appendChild(btn);
+  });
+  openModal('add-room-modal');
+}
+function confirmAddRoom() {
+  const custom = document.getElementById('custom-room-name').value.trim();
+  let name, icon;
+  if (custom) { name = custom; icon = '🏠'; }
+  else if (state.selectedPreset !== null) { name = PRESETS[state.selectedPreset].name; icon = PRESETS[state.selectedPreset].icon; }
+  else { alert('Choisissez une pièce ou entrez un nom personnalisé.'); return; }
+  state.rooms.push({ id: uid(), name, icon, photos: [] });
+  closeModal('add-room-modal'); renderRooms();
+}
+ 
+// ─── ROOM DETAIL ─────────────────────────────────
+function getRoom(id) { return state.rooms.find(r => r.id === id); }
+function getPhoto(roomId, photoId) { return getRoom(roomId)?.photos.find(p => p.id === photoId); }
+ 
+function openRoom(roomId) {
+  state.currentRoomId = roomId; state.currentPhotoId = null;
+  goTo('room-detail'); renderRoomDetail();
+}
+ 
+function renderRoomDetail() {
+  var room = getRoom(state.currentRoomId);
+  if (!room) return;
+  document.getElementById('detail-title').textContent = room.icon + ' ' + room.name;
+  document.getElementById('detail-sub').textContent = room.photos.length + ' photo' + (room.photos.length !== 1 ? 's' : '');
+  var grid = document.getElementById('photos-grid');
+  var html = '';
+  var etatColors = { 'Bon \u00e9tat':'#2e6b3e', 'Usure normale':'#92620a', 'D\u00e9gradation':'#b91c1c' };
+  for (var i = 0; i < room.photos.length; i++) {
+    var photo = room.photos[i];
+    var badge = photo.etat
+      ? '<div style="position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:white;color:' + (etatColors[photo.etat] || '#333') + '">' + photo.etat + '</div>'
+      : '';
+    var dot = photo.comments.length > 0
+      ? '<div style="position:absolute;top:6px;left:6px;width:8px;height:8px;border-radius:50%;background:var(--rust)"></div>'
+      : '';
+    html += '<div data-photo-id="' + photo.id + '" style="position:relative;border-radius:12px;overflow:hidden;aspect-ratio:1;cursor:pointer;background:#e8e0d0">'
+          + '<img src="' + photo.src + '" style="width:100%;height:100%;object-fit:cover;display:block"/>'
+          + badge + dot
+          + '<button data-delete-photo="' + photo.id + '" style="position:absolute;top:6px;right:6px;width:28px;height:28px;background:rgba(26,23,20,.55);border:none;border-radius:8px;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2715</button>'
+          + '</div>';
+  }
+  html += '<div id="add-photo-btn" style="border-radius:12px;aspect-ratio:1;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;color:var(--muted);font-size:12px;font-weight:600;background:var(--warm)">'
+        + '<span style="font-size:24px">📷</span>Ajouter</div>';
+  grid.innerHTML = html;
+}
+ 
+function handleFileSelect(event) {
+  const files = Array.from(event.target.files);
+  const room = getRoom(state.currentRoomId);
+  if (!room) return;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = async e => {
+      const compressed = await compressImage(e.target.result, 1200, 1200, 0.75);
+      room.photos.push({ id: uid(), src: compressed, comments: [], etat: '' });
+      renderRoomDetail();
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+ 
+function deletePhoto(photoId) {
+  showConfirm('Supprimer cette photo et ses commentaires ?', () => {
+    const room = getRoom(state.currentRoomId);
+    room.photos = room.photos.filter(p => p.id !== photoId);
+    renderRoomDetail();
+  });
+}
+ 
+function deleteRoom(roomId) {
+  showConfirm('Supprimer cette pièce et toutes ses photos ?', () => {
+    state.rooms = state.rooms.filter(r => r.id !== roomId);
+    renderRooms();
+  });
+}
+ 
+// ─── PHOTO MODAL ─────────────────────────────────
+function openPhotoModal(photoId) {
+  state.currentPhotoId = photoId;
+  const photo = getPhoto(state.currentRoomId, photoId);
+  if (!photo) return;
+  document.getElementById('modal-photo-img').src = photo.src;
+  document.querySelectorAll('.etat-chip').forEach(c => c.classList.toggle('selected', c.dataset.etat === photo.etat));
+  renderComments(photo); openModal('photo-modal');
+}
+function renderComments(photo) {
+  const list = document.getElementById('comments-list');
+  list.innerHTML = '';
+  photo.comments.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;';
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'flex:1;background:var(--warm);border-radius:10px;padding:8px 10px;font-size:13px;';
+    bubble.innerHTML = `<span>${c.text}</span><span style="color:var(--muted);font-size:10px;margin-left:6px">${c.time}</span>`;
+    const del = document.createElement('button');
+    del.style.cssText = 'background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;';
+    del.textContent = '✕';
+    del.addEventListener('click', () => { photo.comments.splice(i, 1); renderComments(photo); renderRoomDetail(); });
+    row.appendChild(bubble); row.appendChild(del); list.appendChild(row);
+  });
+}
+function addComment() {
+  const photo = getPhoto(state.currentRoomId, state.currentPhotoId);
+  if (!photo) return;
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if (!text) return;
+  photo.comments.push({ text, time: new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) });
+  input.value = ''; renderComments(photo); renderRoomDetail();
+  closeModal('photo-modal');
+}
+function handleCommentKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment(); } }
+function toggleEtat(el, etat) {
+  const photo = getPhoto(state.currentRoomId, state.currentPhotoId);
+  const already = photo.etat === etat;
+  photo.etat = already ? '' : etat;
+  document.querySelectorAll('.etat-chip').forEach(c => c.classList.remove('selected'));
+  if (!already) el.classList.add('selected');
+  renderRoomDetail();
+}
+ 
+// ─── SIGNATURES ──────────────────────────────────
+function renderSignatures() {
+  if (!state.signatures) state.signatures = {};
+  const container = document.getElementById('sig-blocks');
+  container.innerHTML = '';
+  const dateStr = state.date
+    ? new Date(state.date + 'T12:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+    : new Date().toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('sig-date-display').textContent = dateStr;
+  if (state.sigLieu) document.getElementById('input-sig-lieu').value = state.sigLieu;
+  const signataires = [
+    { key: 'proprietaire', name: state.proprietaire || 'Propriétaire', role: 'Propriétaire / Bailleur' },
+    ...state.locataires.map((loc, i) => ({ key: `loc_${i}`, name: locNom(loc) || `Locataire ${i+1}`, role: state.locataires.length === 1 ? 'Locataire' : `Locataire ${i+1}` }))
+  ];
+  document.getElementById('sig-missing-msg').style.display = 'none';
+  signataires.forEach(s => {
+    const signed = !!state.signatures[s.key];
+    const block = document.createElement('div');
+    block.className = `sig-block${signed ? ' signed' : ''}`; block.id = `sig-block-${s.key}`;
+    const lieu = state.sigLieu || '';
+    const lieuDate = [lieu, dateStr].filter(Boolean).join(', le ');
+    if (signed) {
+      block.innerHTML = `
+        <div class="sig-block-header">
+          <div><div class="sig-block-name">${s.name}</div><div class="sig-block-role">${s.role}</div></div>
+          <span class="sig-status done">✓ Signé</span>
+        </div>
+        <div class="sig-canvas-wrap">
+          <img class="sig-validated-img" src="${state.signatures[s.key]}"/>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${lieuDate}</div>
+          <button class="btn-sig-redo" onclick="redoSignature('${s.key}')">↺ Recommencer</button>
+        </div>`;
+    } else {
+      block.innerHTML = `
+        <div class="sig-block-header">
+          <div><div class="sig-block-name">${s.name}</div><div class="sig-block-role">${s.role}</div></div>
+          <span class="sig-status">En attente</span>
+        </div>
+        <div class="sig-canvas-wrap">
+          <canvas class="sig-canvas" id="canvas-${s.key}" width="600" height="140"></canvas>
+          <div class="sig-hint">Signez dans le cadre ci-dessus</div>
+          <div class="sig-actions">
+            <button class="btn-sig-clear" onclick="clearCanvas('${s.key}')">✕ Effacer</button>
+            <button class="btn-sig-validate" onclick="validateSignature('${s.key}')">✓ Valider</button>
+          </div>
+        </div>`;
+      setTimeout(() => initCanvas(`canvas-${s.key}`), 0);
+    }
+    container.appendChild(block);
+  });
+  refreshPdfButton();
+}
+ 
+function initCanvas(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = 140 * window.devicePixelRatio;
+  canvas.style.height = '140px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.strokeStyle = '#1a1714'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  let drawing = false, hasDrawn = false;
+  function getPos(e) { const r = canvas.getBoundingClientRect(); const src = e.touches ? e.touches[0] : e; return { x: src.clientX - r.left, y: src.clientY - r.top }; }
+  function start(e) { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); canvas.classList.add('active'); }
+  function move(e) { e.preventDefault(); if (!drawing) return; hasDrawn = true; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
+  function end(e) { e.preventDefault(); drawing = false; }
+  canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', end); canvas.addEventListener('mouseleave', end);
+  canvas.addEventListener('touchstart', start, { passive: false }); canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end, { passive: false });
+  canvas._hasDrawn = () => hasDrawn;
+}
+function clearCanvas(key) {
+  const canvas = document.getElementById(`canvas-${key}`); if (!canvas) return;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  canvas._hasDrawn = () => false; canvas.classList.remove('active');
+}
+function validateSignature(key) {
+  const canvas = document.getElementById(`canvas-${key}`); if (!canvas) return;
+  if (!canvas._hasDrawn || !canvas._hasDrawn()) { alert('Merci de dessiner votre signature avant de valider.'); return; }
+  const lieuInput = document.getElementById('input-sig-lieu');
+  if (lieuInput) state.sigLieu = lieuInput.value.trim();
+  state.signatures[key] = canvas.toDataURL('image/png');
+  renderSignatures();
+}
+function redoSignature(key) { delete state.signatures[key]; renderSignatures(); }
+function refreshPdfButton() {
+  const signataires = [{ key: 'proprietaire' }, ...state.locataires.map((_, i) => ({ key: `loc_${i}` }))];
+  const doneSigs = signataires.filter(s => !!state.signatures[s.key]).length;
+  const totalSigs = signataires.length;
+  const allSigned = doneSigs === totalSigs;
+  const subEl = document.getElementById('sig-progress-sub');
+  if (subEl) subEl.textContent = allSigned ? '✓ Toutes les signatures recueillies' : `${doneSigs} / ${totalSigs} signature${totalSigs > 1 ? 's' : ''}`;
+  const btn = document.getElementById('btn-pdf-final'); if (!btn) return;
+  btn.disabled = !allSigned; btn.style.opacity = allSigned ? '1' : '0.4';
+  btn.textContent = allSigned ? '📄 Générer le rapport PDF' : `📄 Générer le rapport PDF — ${doneSigs}/${totalSigs} signatures`;
+}
+function updateSigFooter() {
+  state.sigLieu = document.getElementById('input-sig-lieu').value.trim();
+  const dateStr = state.date ? new Date(state.date + 'T12:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : new Date().toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+  document.querySelectorAll('.sig-block.signed').forEach(block => {
+    const lieu = state.sigLieu || '';
+    const lieuDate = [lieu, dateStr].filter(Boolean).join(', le ');
+    const dateEl = block.querySelector('.sig-canvas-wrap div');
+    if (dateEl) dateEl.textContent = lieuDate;
+  });
+  refreshPdfButton();
+}
+function tryGeneratePDF() {
+  const lieu = document.getElementById('input-sig-lieu').value.trim();
+  if (!lieu) { document.getElementById('fg-sig-lieu').classList.add('field-error'); document.getElementById('input-sig-lieu').focus(); return; }
+  document.getElementById('fg-sig-lieu').classList.remove('field-error');
+  state.sigLieu = lieu;
+  const signataires = [{ key: 'proprietaire' }, ...state.locataires.map((_, i) => ({ key: `loc_${i}` }))];
+  if (!signataires.every(s => !!state.signatures[s.key])) {
+    document.getElementById('sig-missing-msg').style.display = 'block';
+    document.getElementById('sig-missing-msg').scrollIntoView({ behavior: 'smooth', block: 'center' }); return;
+  }
+  generatePDF();
+}
+ 
+// ─── GENERATE PDF ────────────────────────────────
+async function generatePDF() {
+  const gen = document.getElementById('pdf-generating');
+  gen.classList.add('show');
+  try {
+    const html = buildReportHTML(state);
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = state.date ? state.date.replace(/-/g,'') : 'sans-date';
+    a.href = url; a.download = `EDL_${state.adresse.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30)}_${dateStr}.html`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const id = await saveToArchive();
+    gen.classList.remove('show');
+    if (id) { goTo('archive'); renderArchive(); }
+  } catch(e) {
+    gen.classList.remove('show');
+    console.error(e); alert('Erreur lors de la génération : ' + e.message);
+  }
+}
+ 
+function buildReportHTML(s) {
+  const typeColor = s.type === 'entree' ? '#7a9e87' : '#c4622d';
+  const typeLabel = s.type === 'entree' ? 'ÉTAT DES LIEUX D\'ENTRÉE' : 'ÉTAT DES LIEUX DE SORTIE';
+  const dateStr = s.date ? new Date(s.date + 'T12:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '—';
+  const totalPhotos = (s.rooms || []).reduce((acc, r) => acc + r.photos.length, 0);
+  const totalComments = (s.rooms || []).reduce((acc, r) => acc + r.photos.reduce((a,p) => a + p.comments.length, 0), 0);
+  const locatairesLabel = (s.locataires || []).map(l => locNom(l) + (locEmail(l) ? ` (${locEmail(l)})` : '')).join(' & ') || 'Non renseigné';
+  const compteursHTML = (s.compteurs || []).length > 0 ? `
+    <div style="margin-bottom:24px;">
+      <h2 style="font-size:14px;font-weight:700;color:#3d2f1f;margin-bottom:10px;border-bottom:2px solid ${typeColor};padding-bottom:6px;">Relevés de compteurs</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <tr style="background:#f5f0e8;"><th style="padding:6px 10px;text-align:left;">Type</th><th style="padding:6px 10px;text-align:left;">N° compteur</th><th style="padding:6px 10px;text-align:right;">Relevé</th></tr>
+        ${(s.compteurs || []).map(c => `<tr style="border-bottom:1px solid #ede6d6;"><td style="padding:6px 10px;">${c.icon||''} ${c.label||c.type}</td><td style="padding:6px 10px;color:#8c7b6b;">${c.numero||'—'}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:${typeColor}">${c.releve} ${c.unite}</td></tr>`).join('')}
+      </table>
+    </div>` : '';
+ 
+  const etatBg = { 'Bon état':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2' };
+  const etatCl = { 'Bon état':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b' };
+  const clesHTML = (s.cles || []).map(cle => {
+    const photosHTML = cle.photos.length === 0
+      ? '<div style="padding:16px 20px;color:#8c7b6b;font-style:italic;font-size:11px;">Aucune photo</div>'
+      : '<div class="photos-wrap">' + cle.photos.map((photo, pi) => {
+          const etatDiv = photo.etat
+            ? '<div class="photo-etat" style="background:' + (etatBg[photo.etat]||'#f5f0e8') + ';color:' + (etatCl[photo.etat]||'#333') + '">' + photo.etat + '</div>'
+            : '';
+          const commentsHTML = (photo.comments||[]).map(c => '<div class="photo-comment">' + c.text + '</div>').join('');
+          return '<div class="photo-block"><img class="photo-img" src="' + photo.src + '" alt="Photo ' + (pi+1) + '"/>'
+               + '<div class="photo-meta"><div class="photo-num">Photo ' + (pi+1) + '</div>' + etatDiv + commentsHTML + '</div></div>';
+        }).join('') + '</div>';
+    return '<div class="page-break">'
+      + '<div class="room-header" style="background:' + typeColor + '">'
+      + '<div class="room-header-name">🔑 ' + cle.titre + '</div>'
+      + '<div class="room-header-count">' + cle.photos.length + ' photo' + (cle.photos.length!==1?'s':'') + '</div>'
+      + '</div>' + photosHTML + '</div>';
+  }).join('');
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>État des lieux — ${s.adresse||''}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'DM Sans',sans-serif; background:white; color:#1a1714; font-size:12px; }
+    .cover { min-height:100vh; display:flex; flex-direction:column; }
+    .cover-band { background:${typeColor}; color:white; padding:40px 36px 32px; }
+    .cover-label { font-size:11px; font-weight:700; letter-spacing:.12em; opacity:.8; margin-bottom:10px; }
+    .cover-address { font-family:'Fraunces',serif; font-size:28px; font-weight:700; line-height:1.2; margin-bottom:10px; }
+    .cover-info { font-size:11px; opacity:.85; }
+    .cover-body { padding:28px 36px; }
+    .summary-box { background:#f5f0e8; border-radius:8px; padding:16px 20px; margin-bottom:24px; display:flex; gap:32px; }
+    .summary-item { text-align:center; }
+    .summary-num { font-size:28px; font-weight:700; color:${typeColor}; line-height:1; }
+    .summary-label { font-size:10px; color:#8c7b6b; margin-top:3px; text-transform:uppercase; letter-spacing:.05em; }
+    .toc-title { font-size:13px; font-weight:700; color:#3d2f1f; margin-bottom:10px; }
+    .toc-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #ede6d6; font-size:11px; color:#5a4a3a; }
+    .page-break { page-break-before:always; }
+    .room-header { color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+    .room-header-name { font-size:15px; font-weight:700; }
+    .room-header-count { font-size:10px; opacity:.85; }
+    .photos-wrap { padding:16px 20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .photo-block { border:1px solid #e5ddd0; border-radius:8px; overflow:hidden; }
+    .photo-img { width:100%; display:block; aspect-ratio:4/3; object-fit:cover; }
+    .photo-meta { padding:10px 12px; background:#faf8f5; }
+    .photo-num { font-size:9px; font-weight:700; color:#8c7b6b; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
+    .photo-etat { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:6px; }
+    .photo-comment { font-size:10px; color:#5a4a3a; margin-bottom:3px; padding-left:8px; border-left:2px solid #d9cfc0; }
+    .sig-section { padding:24px 36px; }
+    .sig-title { font-family:'Fraunces',serif; font-size:16px; font-weight:700; color:#3d2f1f; margin-bottom:8px; }
+    .sig-intro { font-size:10px; color:#8c7b6b; margin-bottom:20px; line-height:1.5; }
+    .sig-grid { display:grid; grid-template-columns:repeat(${Math.min(s.locataires.length + 1, 3)},1fr); gap:16px; }
+    .sig-box { border:1px solid #d9cfc0; border-radius:8px; padding:14px; }
+    .sig-role { font-size:9px; font-weight:700; color:${typeColor}; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
+    .sig-name { font-size:12px; font-weight:600; color:#1a1714; margin-bottom:2px; }
+    .sig-email { font-size:10px; color:#8c7b6b; margin-bottom:14px; font-style:italic; }
+    .sig-line { border-top:1px solid #d9cfc0; padding-top:6px; font-size:9px; color:#8c7b6b; margin-top:6px; }
+    .footer { font-size:9px; color:#8c7b6b; text-align:center; margin-top:24px; padding-top:12px; border-top:1px solid #ede6d6; }
+    @media print { .page-break { page-break-before:always; } }
+  </style></head><body>
+  <div class="cover">
+    <div class="cover-band">
+      <div class="cover-label">${typeLabel}</div>
+      <div class="cover-address">${s.adresse || 'Adresse non renseignée'}</div>
+      <div class="cover-info">Propriétaire : ${s.proprietaire || '—'}${s.proprietaireEmail ? ` (${s.proprietaireEmail})` : ''} &nbsp;|&nbsp; Locataire${(s.locataires||[]).length > 1 ? 's' : ''} : ${locatairesLabel} &nbsp;|&nbsp; Date : ${dateStr}</div>
+    </div>
+    <div class="cover-body">
+      <div class="summary-box">
+        <div class="summary-item"><div class="summary-num">${(s.rooms||[]).length}</div><div class="summary-label">Pièce${(s.rooms||[]).length>1?'s':''}</div></div>
+        <div class="summary-item"><div class="summary-num">${totalPhotos}</div><div class="summary-label">Photo${totalPhotos>1?'s':''}</div></div>
+        <div class="summary-item"><div class="summary-num">${totalComments}</div><div class="summary-label">Commentaire${totalComments>1?'s':''}</div></div>
+      </div>
+      ${compteursHTML}
+      <div class="toc-title">Sommaire</div>
+      ${(s.rooms||[]).map((r,i) => `<div class="toc-row"><span>${i+1}. ${r.icon} ${r.name}</span><span style="color:#8c7b6b">${r.photos.length} photo${r.photos.length!==1?'s':''}</span></div>`).join('')}
+    </div>
+  </div>
+  ${(s.rooms||[]).map((room, ri) => `
+  <div class="page-break">
+    <div class="room-header" style="background:${typeColor}">
+      <div class="room-header-name">${room.icon} ${room.name}</div>
+      <div class="room-header-count">${room.photos.length} photo${room.photos.length!==1?'s':''}</div>
+    </div>
+    ${room.photos.length === 0 ? '<div style="padding:16px 20px;color:#8c7b6b;font-style:italic;font-size:11px;">Aucune photo</div>' :
+    `<div class="photos-wrap">${room.photos.map((photo, pi) => `
+      <div class="photo-block">
+        <img class="photo-img" src="${photo.src}" alt="Photo ${pi+1}"/>
+        <div class="photo-meta">
+          <div class="photo-num">Photo ${pi+1}</div>
+          ${photo.etat ? `<div class="photo-etat" style="background:${({'Bon état':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2'}[photo.etat]||'#f5f0e8')};color:${({'Bon état':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b'}[photo.etat]||'#333')}">${photo.etat}</div>` : ''}
+          ${photo.comments.map(c => `<div class="photo-comment">${c.text}</div>`).join('')}
+        </div>
+      </div>`).join('')}</div>`}
+  </div>`).join('')}
+  ${clesHTML}
+ 
+  <div class="page-break sig-section">
+    <div class="sig-title">Signatures</div>
+    <div class="sig-intro">Le présent état des lieux a été établi contradictoirement entre les parties soussignées qui le reconnaissent exact et en ont reçu chacune un exemplaire.</div>
+    <div class="sig-grid">
+      <div class="sig-box">
+        <div class="sig-role">Bailleur / Propriétaire</div>
+        <div class="sig-name">${s.proprietaire || ''}</div>
+        ${s.proprietaireEmail ? `<div class="sig-email">${s.proprietaireEmail}</div>` : ''}
+        ${s.signatures && s.signatures['proprietaire'] ? `<img src="${s.signatures['proprietaire']}" style="width:100%;height:70px;object-fit:contain;margin:8px 0"/>` : '<div style="height:70px"></div>'}
+        <div class="sig-line">Fait à ${s.sigLieu || '___________'}, le ${dateStr}</div>
+      </div>
+      ${(s.locataires||[]).map((loc, i) => `
+      <div class="sig-box">
+        <div class="sig-role">Locataire${(s.locataires||[]).length > 1 ? ` ${i+1}` : ''}</div>
+        <div class="sig-name">${locNom(loc)}</div>
+        ${locEmail(loc) ? `<div class="sig-email">${locEmail(loc)}</div>` : ''}
+        ${s.signatures && s.signatures[`loc_${i}`] ? `<img src="${s.signatures[`loc_${i}`]}" style="width:100%;height:70px;object-fit:contain;margin:8px 0"/>` : '<div style="height:70px"></div>'}
+        <div class="sig-line">Fait à ${s.sigLieu || '___________'}, le ${dateStr}</div>
+      </div>`).join('')}
+    </div>
+    <div class="footer">Document généré le ${new Date().toLocaleDateString('fr-FR')} — ${typeLabel} — ${s.adresse || ''}</div>
+  </div>
+  </body></html>`;
+  return html;
+}
+ 
+// ─── IMAGE COMPRESSION ───────────────────────────
+function compressImage(src, maxW, maxH, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxW || h > maxH) { const ratio = Math.min(maxW/w, maxH/h); w = Math.round(w*ratio); h = Math.round(h*ratio); }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(src);
+    img.src = src;
+  });
+}
+ 
+// ─── INDEXEDDB ───────────────────────────────────
+const DB_NAME = 'edl_db', DB_VERSION = 1;
+let _db = null;
+function openDB() {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('blobs'))   db.createObjectStore('blobs',   { keyPath: 'id' });
+    };
+    req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+function dbSet(store, obj) { return openDB().then(db => new Promise((res, rej) => { const tx = db.transaction(store,'readwrite'); tx.objectStore(store).put(obj); tx.oncomplete = () => res(true); tx.onerror = e => rej(e.target.error); })); }
+function dbGet(store, id) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).get(id); req.onsuccess = e => res(e.target.result||null); req.onerror = e => rej(e.target.error); })); }
+function dbDel(store, id) { return openDB().then(db => new Promise((res, rej) => { const tx = db.transaction(store,'readwrite'); tx.objectStore(store).delete(id); tx.oncomplete = () => res(true); tx.onerror = e => rej(e.target.error); })); }
+function dbGetAll(store) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).getAll(); req.onsuccess = e => res(e.target.result||[]); req.onerror = e => rej(e.target.error); })); }
+function dbGetAllKeys(store) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).getAllKeys(); req.onsuccess = e => res(e.target.result||[]); req.onerror = e => rej(e.target.error); })); }
+ 
+ 
+// ── CLÉS ─────────────────────────────────────────────────────────
+function openAddCle() {
+  document.getElementById('input-cle-titre').value = '';
+  openModal('add-cle-modal');
+}
+function confirmAddCle() {
+  const titre = document.getElementById('input-cle-titre').value.trim() || 'Clés';
+  state.cles = state.cles || [];
+  state.cles.push({ id: uid(), titre: titre, photos: [] });
+  closeModal('add-cle-modal');
+  renderCles();
+}
+function renderCles() {
+  const container = document.getElementById('cles-list');
+  if (!container) return;
+  container.innerHTML = '';
+  (state.cles || []).forEach(cle => {
+    const card = document.createElement('div');
+    card.className = 'compteur-card';
+    card.dataset.cleId = cle.id;
+    card.style.cursor = 'pointer';
+    card.innerHTML = '<div class="compteur-icon">🔑</div><div class="compteur-info"><div class="compteur-label">' + cle.titre + '</div><div class="compteur-numero">' + cle.photos.length + ' photo' + (cle.photos.length !== 1 ? 's' : '') + '</div></div><button class="compteur-delete" data-delete-cle="' + cle.id + '">✕</button>';
+    container.appendChild(card);
+  });
+}
+function getClePhoto(cleId, photoId) {
+  const cle = (state.cles || []).find(c => c.id === cleId);
+  return cle ? cle.photos.find(p => p.id === photoId) : null;
+}
+function openCleDetail(cleId) {
+  state.currentCleId = cleId;
+  state.currentClePhotoId = null;
+  const cle = (state.cles || []).find(c => c.id === cleId);
+  if (!cle) return;
+  document.getElementById('cle-detail-titre').textContent = '🔑 ' + cle.titre;
+  document.getElementById('cle-detail-sub').textContent = cle.photos.length + ' photo' + (cle.photos.length !== 1 ? 's' : '');
+  renderCleDetail();
+  goTo('cle-detail');
+}
+function renderCleDetail() {
+  var cle = (state.cles || []).find(c => c.id === state.currentCleId);
+  if (!cle) return;
+  document.getElementById('cle-detail-sub').textContent = cle.photos.length + ' photo' + (cle.photos.length !== 1 ? 's' : '');
+  var grid = document.getElementById('cle-photos-grid');
+  var html = '';
+  var etatColors = { 'Bon état':'#2e6b3e', 'Usure normale':'#92620a', 'Dégradation':'#b91c1c' };
+  for (var i = 0; i < cle.photos.length; i++) {
+    var photo = cle.photos[i];
+    var badge = photo.etat
+      ? '<div style="position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:white;color:' + (etatColors[photo.etat] || '#333') + '">' + photo.etat + '</div>'
+      : '';
+    var dot = photo.comments.length > 0
+      ? '<div style="position:absolute;top:6px;left:6px;width:8px;height:8px;border-radius:50%;background:var(--rust)"></div>'
+      : '';
+    html += '<div data-cle-photo-id="' + photo.id + '" style="position:relative;border-radius:12px;overflow:hidden;aspect-ratio:1;cursor:pointer;background:#e8e0d0">'
+          + '<img src="' + photo.src + '" style="width:100%;height:100%;object-fit:cover;display:block"/>'
+          + badge + dot
+          + '<button data-delete-cle-photo="' + photo.id + '" style="position:absolute;top:6px;right:6px;width:28px;height:28px;background:rgba(26,23,20,.55);border:none;border-radius:8px;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'
+          + '</div>';
+  }
+  html += '<div id="add-cle-photo-btn" style="border-radius:12px;aspect-ratio:1;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;color:var(--muted);font-size:12px;font-weight:600;background:var(--warm)">'
+        + '<span style="font-size:24px">📷</span>Ajouter</div>';
+  grid.innerHTML = html;
+}
+function openClePhotoModal(photoId) {
+  state.currentClePhotoId = photoId;
+  const photo = getClePhoto(state.currentCleId, photoId);
+  if (!photo) return;
+  document.getElementById('cle-modal-photo-img').src = photo.src;
+  document.querySelectorAll('#cle-photo-modal .etat-chip').forEach(c => c.classList.toggle('selected', c.dataset.etat === photo.etat));
+  renderCleComments(photo);
+  openModal('cle-photo-modal');
+}
+function toggleCleEtat(el, etat) {
+  const photo = getClePhoto(state.currentCleId, state.currentClePhotoId);
+  const already = photo.etat === etat;
+  photo.etat = already ? '' : etat;
+  document.querySelectorAll('#cle-photo-modal .etat-chip').forEach(c => c.classList.remove('selected'));
+  if (!already) el.classList.add('selected');
+  renderCleDetail();
+}
+function renderCleComments(photo) {
+  const list = document.getElementById('cle-comments-list');
+  list.innerHTML = '';
+  photo.comments.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;';
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'flex:1;background:var(--warm);border-radius:10px;padding:8px 10px;font-size:13px;';
+    bubble.innerHTML = '<span>' + c.text + '</span><span style="color:var(--muted);font-size:10px;margin-left:6px">' + c.time + '</span>';
+    const del = document.createElement('button');
+    del.style.cssText = 'background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;';
+    del.textContent = '✕';
+    del.addEventListener('click', () => { photo.comments.splice(i, 1); renderCleComments(photo); renderCleDetail(); });
+    row.appendChild(bubble); row.appendChild(del); list.appendChild(row);
+  });
+}
+function addCleComment() {
+  const photo = getClePhoto(state.currentCleId, state.currentClePhotoId);
+  if (!photo) return;
+  const input = document.getElementById('cle-comment-input');
+  const text = input.value.trim();
+  if (!text) return;
+  photo.comments.push({ text, time: new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) });
+  input.value = ''; renderCleComments(photo); renderCleDetail();
+  closeModal('cle-photo-modal');
+}
+function handleCleCommentKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addCleComment(); } }
+function deleteClePhoto(photoId) {
+  showConfirm('Supprimer cette photo et ses commentaires ?', () => {
+    const cle = (state.cles || []).find(c => c.id === state.currentCleId);
+    cle.photos = cle.photos.filter(p => p.id !== photoId);
+    renderCleDetail();
+  });
+}
+function handleCleFileSelect(event) {
+  const cle = (state.cles || []).find(c => c.id === state.currentCleId);
+  if (!cle) { event.target.value = ''; return; }
+  Array.from(event.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const src = await compressImage(ev.target.result, 1200, 1200, 0.75);
+      cle.photos.push({ id: uid(), src, etat: '', comments: [] });
+      renderCleDetail();
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+ 
+// ─── ARCHIVE ─────────────────────────────────────
+async function saveToArchive() {
+  try {
+    const id = 'edl_' + Date.now();
+    const roomsLight = await Promise.all(state.rooms.map(async (room, ri) => ({
+      ...room,
+      photos: await Promise.all(room.photos.map(async (photo, pi) => {
+        const blobId = `${id}_photo_${ri}_${pi}`;
+        const compressed = await compressImage(photo.src, 1200, 1200, 0.82);
+        await dbSet('blobs', { id: blobId, data: compressed });
+        return { ...photo, src: `__blob__${blobId}` };
+      }))
+    })));
+    const clesLight = await Promise.all((state.cles || []).map(async (cle, ci) => ({
+      ...cle,
+      photos: await Promise.all(cle.photos.map(async (photo, pi) => {
+        const blobId = `${id}_cle_${ci}_${pi}`;
+        const compressed = await compressImage(photo.src, 1200, 1200, 0.82);
+        await dbSet('blobs', { id: blobId, data: compressed });
+        return { ...photo, src: `__blob__${blobId}` };
+      }))
+    })));
+    const sigsLight = {};
+    if (state.signatures) {
+      await Promise.all(Object.entries(state.signatures).map(async ([k, v]) => {
+        const blobId = `${id}_sig_${k}`;
+        await dbSet('blobs', { id: blobId, data: v });
+        sigsLight[k] = `__blob__${blobId}`;
+      }));
+    }
+    const record = {
+      id, savedAt: new Date().toISOString(),
+      type: state.type, adresse: state.adresse,
+      proprietaire: state.proprietaire, proprietaireEmail: state.proprietaireEmail || '',
+      locataires: state.locataires, date: state.date,
+      sigLieu: state.sigLieu || '', compteurs: state.compteurs || [],
+      roomsCount: state.rooms.length,
+      photosCount: state.rooms.reduce((s,r) => s + r.photos.length, 0),
+      rooms: roomsLight, cles: clesLight, signatures: sigsLight,
+    };
+    await dbSet('records', record);
+    return id;
+  } catch(e) {
+    console.error('Erreur sauvegarde:', e);
+    alert('⚠️ Impossible de sauvegarder dans "Mes états des lieux" :\n' + e.message);
+    return null;
+  }
+}
+ 
+async function renderArchive() {
+  const container = document.getElementById('archive-list');
+  container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>';
+  try {
+    const records = await dbGetAll('records');
+    records.sort((a,b) => b.savedAt.localeCompare(a.savedAt));
+    document.getElementById('archive-sub').textContent = records.length === 0 ? 'Aucun dossier' : `${records.length} dossier${records.length > 1 ? 's' : ''}`;
+    if (records.length === 0) {
+      container.innerHTML = `<div style="padding:60px 24px;text-align:center"><div style="font-size:48px;margin-bottom:16px">📂</div><div style="font-size:16px;font-weight:600;color:var(--dark);margin-bottom:8px">Aucun rapport enregistré</div><div style="font-size:13px;color:var(--muted)">Vos rapports générés apparaîtront ici.</div></div>`;
+      return;
+    }
+    container.innerHTML = '';
+    records.forEach(rec => {
+      const dateEdl = rec.date ? new Date(rec.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+      const savedDate = new Date(rec.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+      const typeColor = rec.type === 'entree' ? 'var(--sage)' : 'var(--rust)';
+      const typeLabel = rec.type === 'entree' ? 'ENTRÉE' : 'SORTIE';
+      const card = document.createElement('div');
+      card.style.cssText = 'background:var(--white);border:1.5px solid var(--border);border-radius:16px;margin:0 20px 14px;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s;';
+      card.onmouseenter = () => card.style.boxShadow = '0 4px 20px rgba(26,23,20,0.10)';
+      card.onmouseleave = () => card.style.boxShadow = 'none';
+      card.dataset.archiveId = rec.id;
+      card.innerHTML = `
+        <div style="padding:16px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:15px;font-weight:600;color:var(--dark);flex:1;padding-right:12px">${rec.adresse||'—'}</div>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:${typeColor};color:white;white-space:nowrap">${typeLabel}</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">📅 ${dateEdl} &nbsp;·&nbsp; 🏠 ${rec.roomsCount} pièce${rec.roomsCount>1?'s':''} &nbsp;·&nbsp; 📷 ${rec.photosCount} photo${rec.photosCount>1?'s':''}</div>
+          <div style="font-size:11px;color:var(--muted)">👤 ${rec.proprietaire||'—'} &nbsp;·&nbsp; Généré le ${savedDate}</div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding:10px 16px;background:var(--warm);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">Voir le rapport →</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button data-share-id="${rec.id}" style="background:var(--white);border:1.5px solid var(--border);border-radius:10px;font-size:16px;cursor:pointer;padding:8px 12px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;">📤</button>
+            <button data-delete-id="${rec.id}" style="background:var(--white);border:1.5px solid var(--border);border-radius:10px;font-size:16px;cursor:pointer;padding:8px 12px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;">🗑️</button>
+          </div>
+        </div>`;
+      container.appendChild(card);
+    });
+  } catch(e) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--rust)">Erreur : ${e.message}</div>`;
+  }
+}
+ 
+async function openViewer(id) {
+  try {
+    const rec = await dbGet('records', id); if (!rec) { alert('Rapport introuvable.'); return; }
+    const rooms = await Promise.all((rec.rooms||[]).map(async room => ({ ...room, photos: await Promise.all((room.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) })));
+    const signatures = {};
+    if (rec.signatures) { await Promise.all(Object.entries(rec.signatures).map(async ([k, v]) => { if (v && v.startsWith('__blob__')) { const blob = await dbGet('blobs', v.replace('__blob__','')); signatures[k] = blob ? blob.data : ''; } else { signatures[k] = v; } })); }
+    const cles = await Promise.all((rec.cles||[]).map(async cle => ({ ...cle, photos: await Promise.all((cle.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) })));
+    const snap = { ...rec, rooms, cles, signatures, compteurs: rec.compteurs||[] };
+    const html = buildReportHTML(snap);
+    const dateEdl = rec.date ? new Date(rec.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '';
+    document.getElementById('viewer-title').textContent = rec.adresse||'Rapport';
+    document.getElementById('viewer-sub').textContent = (rec.type==='entree'?'Entrée':'Sortie') + (dateEdl?' · '+dateEdl:'');
+    const frame = document.getElementById('viewer-frame');
+    frame.srcdoc = html; frame._htmlContent = html;
+    goTo('viewer');
+  } catch(e) { console.error(e); alert('Erreur : ' + e.message); }
+}
+ 
+function viewerPrint() { const frame = document.getElementById('viewer-frame'); if (frame.contentWindow) frame.contentWindow.print(); }
+ 
+// ─── EMAIL SHARE ─────────────────────────────────
+ 
+ 
+ 
+ 
+async function shareReport(id) {
+  try {
+    const rec = await dbGet('records', id);
+    if (!rec) { alert('Rapport introuvable.'); return; }
+ 
+    // Résoudre tous les blobs
+    const rooms = await Promise.all((rec.rooms||[]).map(async room => ({
+      ...room,
+      photos: await Promise.all((room.photos||[]).map(async photo => {
+        if (photo.src && photo.src.startsWith('__blob__')) {
+          const blob = await dbGet('blobs', photo.src.replace('__blob__',''));
+          return { ...photo, src: blob ? blob.data : '' };
+        }
+        return photo;
+      }))
+    })));
+    const cles = await Promise.all((rec.cles||[]).map(async cle => ({
+      ...cle,
+      photos: await Promise.all((cle.photos||[]).map(async photo => {
+        if (photo.src && photo.src.startsWith('__blob__')) {
+          const blob = await dbGet('blobs', photo.src.replace('__blob__',''));
+          return { ...photo, src: blob ? blob.data : '' };
+        }
+        return photo;
+      }))
+    })));
+    const signatures = {};
+    if (rec.signatures) {
+      await Promise.all(Object.entries(rec.signatures).map(async ([k, v]) => {
+        if (v && v.startsWith('__blob__')) {
+          const blob = await dbGet('blobs', v.replace('__blob__',''));
+          signatures[k] = blob ? blob.data : '';
+        } else { signatures[k] = v; }
+      }));
+    }
+    const snap = { ...rec, rooms, cles, signatures, compteurs: rec.compteurs||[] };
+    const html = buildReportHTML(snap);
+ 
+    const adresse = (rec.adresse||'rapport').replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+    const dateStr = rec.date ? rec.date.replace(/-/g,'') : 'sans-date';
+    const typeStr = rec.type === 'entree' ? 'entree' : 'sortie';
+    const filename = 'EDL_' + typeStr + '_' + adresse + '_' + dateStr + '.html';
+ 
+    // HTML avec impression automatique au chargement
+    const htmlWithPrint = html.replace('</body>', '<scr' + 'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print();},600);});</' + 'script></body>');
+ 
+    const blob = new Blob([htmlWithPrint], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+ 
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+ 
+    if (isIOS) {
+      // Sur iOS : ouvrir dans un nouvel onglet — l'utilisateur utilise le bouton partage de Safari
+      window.open(url, '_blank');
+    } else if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([htmlWithPrint], filename, { type: 'text/html' })] })) {
+      const file = new File([htmlWithPrint], filename, { type: 'text/html' });
+      try {
+        await navigator.share({ title: 'EDL — ' + (rec.adresse||''), files: [file] });
+      } catch(shareErr) {
+        if (shareErr.name !== 'AbortError') {
+          const a = document.createElement('a');
+          a.href = url; a.download = filename;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+      }
+    } else {
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+ 
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  } catch(e) {
+    if (e.name !== 'AbortError') { console.error(e); alert('Erreur : ' + e.message); }
+  }
+}
+ 
+function deleteArchiveEntry(id) {
+  showConfirm(
+    `<strong style="font-size:15px">Supprimer ce rapport ?</strong><br><br>Cette action supprimera définitivement l'état des lieux ainsi que toutes les photos, commentaires et signatures associés.<br><br><span style="color:var(--rust);font-weight:600">⚠ Cette action est irréversible.</span>`,
+    async () => {
+      const allKeys = await dbGetAllKeys('blobs');
+      await Promise.all(allKeys.filter(k => String(k).startsWith(id+'_')).map(k => dbDel('blobs', k)));
+      await dbDel('records', id); renderArchive();
+    }
+  );
+}
+ 
+// ─── MODALS ──────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showConfirm(message, onConfirm) {
+  const overlay = document.getElementById('confirm-modal');
+  document.getElementById('confirm-message').innerHTML = message;
+  overlay.classList.add('open');
+  const btnOk = document.getElementById('confirm-ok');
+  const btnCancel = document.getElementById('confirm-cancel');
+  const newOk = btnOk.cloneNode(true); const newCancel = btnCancel.cloneNode(true);
+  btnOk.parentNode.replaceChild(newOk, btnOk); btnCancel.parentNode.replaceChild(newCancel, btnCancel);
+  newOk.addEventListener('click', () => { overlay.classList.remove('open'); onConfirm(); });
+  newCancel.addEventListener('click', () => overlay.classList.remove('open'));
+}
+ 
+// ─── UTILS ───────────────────────────────────────
+function uid() { return Math.random().toString(36).slice(2,9); }
+function locNom(l)   { return typeof l === 'object' ? (l.nom   || '') : (l || ''); }
+function locEmail(l) { return typeof l === 'object' ? (l.email || '') : ''; }
+ 
+// ─── INIT ─────────────────────────────────────────
+document.getElementById('input-date').valueAsDate = new Date();
+document.getElementById('btn-open-gallery').addEventListener('click', function() {
+  closeModal('photo-source-modal'); document.getElementById('file-input-gallery').click();
+});
+document.getElementById('btn-open-camera').addEventListener('click', function() {
+  closeModal('photo-source-modal'); document.getElementById('file-input-camera').click();
+});
+document.getElementById('file-input-gallery').addEventListener('change', handleFileSelect);
+document.getElementById('file-input-camera').addEventListener('change', handleFileSelect);
+ 
+// ── Délégation rooms-list ────────────────────────────────────────
+document.getElementById('rooms-list').addEventListener('click', function(e) {
+  var delBtn = e.target.closest('[data-delete-id]');
+  if (delBtn) { e.stopPropagation(); deleteRoom(delBtn.getAttribute('data-delete-id')); return; }
+  var card = e.target.closest('[data-room-id]');
+  if (card) { openRoom(card.getAttribute('data-room-id')); }
+});
+ 
+// ── Délégation photos-grid ───────────────────────────────────────
+document.getElementById('photos-grid').addEventListener('click', function(e) {
+  var delBtn = e.target.closest('[data-delete-photo]');
+  if (delBtn) { e.stopPropagation(); deletePhoto(delBtn.getAttribute('data-delete-photo')); return; }
+  var addBtn = e.target.closest('#add-photo-btn');
+  if (addBtn) { openModal('photo-source-modal'); return; }
+  var wrap = e.target.closest('[data-photo-id]');
+  if (wrap) { openPhotoModal(wrap.getAttribute('data-photo-id')); }
+});
+ 
+document.getElementById('archive-list').addEventListener('click', function(e) {
+  var shareBtn = e.target.closest('[data-share-id]');
+  if (shareBtn) { e.stopPropagation(); shareReport(shareBtn.getAttribute('data-share-id')); return; }
+  var deleteBtn = e.target.closest('[data-delete-id]');
+  if (deleteBtn) { e.stopPropagation(); deleteArchiveEntry(deleteBtn.getAttribute('data-delete-id')); return; }
+  var card = e.target.closest('[data-archive-id]');
+  if (card) openViewer(card.getAttribute('data-archive-id'));
+});
+ 
+document.getElementById('cle-file-gallery').addEventListener('change', handleCleFileSelect);
+document.getElementById('cle-file-camera').addEventListener('change', handleCleFileSelect);
+document.getElementById('cle-btn-open-gallery').addEventListener('click', function() {
+  closeModal('cle-photo-source-modal'); document.getElementById('cle-file-gallery').click();
+});
+document.getElementById('cle-btn-open-camera').addEventListener('click', function() {
+  closeModal('cle-photo-source-modal'); document.getElementById('cle-file-camera').click();
+});
+document.getElementById('cles-list').addEventListener('click', function(e) {
+  var d = e.target.closest('[data-delete-cle]');
+  if (d) { e.stopPropagation(); showConfirm('Supprimer cette remise de clés ?', function() { state.cles=(state.cles||[]).filter(function(c){return c.id!==d.getAttribute('data-delete-cle');}); renderCles(); }); return; }
+  var card = e.target.closest('[data-cle-id]');
+  if (card) openCleDetail(card.getAttribute('data-cle-id'));
+});
+document.getElementById('cle-photos-grid').addEventListener('click', function(e) {
+  var delBtn = e.target.closest('[data-delete-cle-photo]');
+  if (delBtn) { e.stopPropagation(); deleteClePhoto(delBtn.getAttribute('data-delete-cle-photo')); return; }
+  var addBtn = e.target.closest('#add-cle-photo-btn');
+  if (addBtn) { openModal('cle-photo-source-modal'); return; }
+  var wrap = e.target.closest('[data-cle-photo-id]');
+  if (wrap) { openClePhotoModal(wrap.getAttribute('data-cle-photo-id')); }
+});
+</script>
+</body>
+</html>
