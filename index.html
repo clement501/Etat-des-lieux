@@ -1723,7 +1723,7 @@ async function renderProfil() {
   const planEl = document.getElementById("profil-plan");
   if (planEl) {
     const plan = await loadUserPlan();
-    if (plan === "unlimited") {
+    if (plan === "unlimited" || plan === "particulier") {
       planEl.innerHTML = "<span style=\"color:#166534;font-weight:700;background:#dcfce7;padding:3px 10px;border-radius:20px;font-size:13px;\">✓ Illimité</span>";
     } else {
       planEl.innerHTML = "<span style=\"color:#92400e;font-weight:700;background:#fef3c7;padding:3px 10px;border-radius:20px;font-size:13px;\">Version d’essai — 1 EDL</span>";
@@ -1808,7 +1808,7 @@ async function getUserEDLCount() {
 
 async function checkCanCreateEDL() {
   const plan = await loadUserPlan();
-  if (plan === "unlimited") return true;
+  if (plan === "unlimited" || plan === "particulier" || plan === "particulier") return true;
   const count = await getUserEDLCount();
   if (count >= 1) {
     const overlay = document.getElementById("confirm-modal");
