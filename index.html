@@ -1488,7 +1488,15 @@ function buildReportHTML(s) {
     <div class="cover-band">
       <div class="cover-label">${typeLabel}</div>
       <div class="cover-address">${s.adresse || 'Adresse non renseignée'}</div>
-      <div class="cover-info">Propriétaire : ${s.proprietaire || '—'}${s.proprietaireEmail ? ` (${s.proprietaireEmail})` : ''} &nbsp;|&nbsp; Locataire${(s.locataires||[]).length > 1 ? 's' : ''} : ${locatairesLabel} &nbsp;|&nbsp; Date : ${dateStr}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;">
+        <div>
+          <div style="font-size:11px;opacity:.75;margin-bottom:6px;">Propriétaire : ${s.proprietaire || '—'}${s.proprietaireEmail ? ` (${s.proprietaireEmail})` : ''}</div>
+          ${(s.locataires||[]).map((loc, i) => `<div style="font-size:16px;font-weight:700;color:white;margin-top:4px;">${locNom(loc)}${locEmail(loc) ? '<span style=\"font-size:11px;font-weight:400;opacity:.8;margin-left:8px;\">' + locEmail(loc) + '</span>' : ''}</div>`).join('')}
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:20px;">
+          <div style="font-size:22px;font-weight:700;color:white;line-height:1.2;">${dateStr}</div>
+        </div>
+      </div>
     </div>
     <div class="cover-body">
       <div class="summary-box">
