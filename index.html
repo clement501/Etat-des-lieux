@@ -2143,9 +2143,12 @@ async function shareReport(id) {
     const typeStr = rec.type === 'entree' ? 'entree' : 'sortie';
     const filename = 'EDL_' + typeStr + '_' + adresse + '_' + dateStr;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-    if (isIOS) {
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    if (isIOS || isPWA) {
+      // Sur iOS ou PWA : ouvrir dans un nouvel onglet avec impression auto
+      const htmlWithPrint = html.replace('</body>', '<scr'+'ipt>window.onload=function(){window.print();};</'+'script></body>');
+      const blob = new Blob([htmlWithPrint], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 30000);
