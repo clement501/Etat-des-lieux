@@ -2301,7 +2301,8 @@ function locEmail(l) { return typeof l === 'object' ? (l.email || '') : ''; }
   const params = new URLSearchParams(location.search);
   if (params.get('checkout') === 'success') {
     history.replaceState({}, '', location.pathname);
-    alert('✓ Paiement réussi ! Votre compte est mis à jour en version Particulier.');
+    alert('✓ Paiement réussi ! Votre compte est maintenant en version Particulier.');
+    location.reload();
   } else if (params.get('checkout') === 'cancel') {
     history.replaceState({}, '', location.pathname);
   }
