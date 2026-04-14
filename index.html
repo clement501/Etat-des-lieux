@@ -2034,7 +2034,7 @@ async function renderArchive() {
       const typeColor = rec.type === 'entree' ? 'var(--sage)' : 'var(--rust)';
       const typeLabel = rec.type === 'entree' ? 'ENTRÉE' : 'SORTIE';
       const card = document.createElement('div');
-      card.style.cssText = 'background:var(--white);border:1.5px solid var(--border);border-radius:16px;margin:0 20px 14px;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s;';
+      card.style.cssText = 'background:var(--white);border:1.5px solid var(--border);border-radius:16px;margin:0 20px 14px;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
       card.onmouseenter = () => card.style.boxShadow = '0 4px 20px rgba(26,23,20,0.10)';
       card.onmouseleave = () => card.style.boxShadow = 'none';
       card.dataset.archiveId = rec.id;
@@ -2145,10 +2145,18 @@ async function shareReport(id) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-    if (isIOS || isPWA) {
-      // Sur iOS ou PWA : ouvrir dans un nouvel onglet avec impression auto
-      const htmlWithPrint = html.replace('</body>', '<scr'+'ipt>window.onload=function(){window.print();};</'+'script></body>');
-      const blob = new Blob([htmlWithPrint], { type: 'text/html;charset=utf-8' });
+    if (isIOS) {
+      // Sur iOS : ouvrir dans un nouvel onglet Safari — partage natif ou "Enregistrer en PDF"
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      return;
+    }
+
+    if (isPWA) {
+      // Sur PWA non-iOS : ouvrir dans nouvel onglet
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 30000);
