@@ -1844,7 +1844,7 @@ async function startCheckout() {
       : 'https://clement501.github.io/Etat-des-lieux/';
     const res = await fetch('https://nxjwocmidveiqspzgkmg.supabase.co/functions/v1/create-checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.access_token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: user.id, email: user.email,
         price_id: 'price_1TM3P2BZyXijDnRtWATLYQhH',
