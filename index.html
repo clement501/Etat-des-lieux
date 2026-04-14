@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
- 
+
 <style>
 :root {
   --cream:#f5f0e8; --warm:#ede6d6; --white:#fffef9;
@@ -21,47 +21,47 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);overflow:hidden;}
- 
+
 /* ── SCREENS ── */
 .screen{display:none;flex-direction:column;height:100dvh;overflow:hidden;}
 .screen.active{display:flex;}
- 
+
 /* ── TOP BAR ── */
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;}
 .top-bar-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;}
 .top-bar-sub{font-size:11px;color:var(--muted);margin-top:1px;}
 .btn-back{width:36px;height:36px;border-radius:10px;background:var(--warm);border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .top-bar-right{width:36px;display:flex;justify-content:flex-end;}
- 
+
 /* ── SCROLLABLE BODY ── */
 .screen-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 120px;}
- 
+
 /* ── FORM ── */
 .form-group{margin-bottom:20px;}
 label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-input[type="text"],input[type="date"],input[type="email"],textarea,select{width:100%;padding:14px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--dark);outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+input[type="text"],input[type="date"],input[type="email"],input[type="password"],textarea,select{width:100%;padding:14px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--dark);outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
 input:focus,textarea:focus{border-color:var(--rust);}
 .required-star{color:var(--rust);}
 .error-msg{display:none;font-size:12px;color:var(--rust);margin-top:6px;font-weight:500;}
 .field-error .error-msg{display:block;}
 .field-error input,.field-error textarea{border-color:var(--rust)!important;}
- 
+
 /* ── TYPE TOGGLE ── */
 .type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .toggle-btn{padding:14px;border:1.5px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;text-align:center;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--muted);}
 .toggle-btn.selected{border-color:var(--rust);background:rgba(196,98,45,.06);color:var(--rust);font-weight:600;}
 .toggle-icon{font-size:20px;display:block;margin-bottom:4px;}
- 
+
 /* ── LOCATAIRES ── */
 .locataire-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;animation:fadeUp .2s ease both;}
 .locataire-row input[type="text"],.locataire-row input[type="email"]{margin-bottom:0!important;flex:1;min-width:0;width:auto!important;}
 .locataire-num{width:24px;height:24px;background:var(--rust);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
 .btn-remove-locataire{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
- 
+
 /* ── BTN START ── */
 .btn-start{display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 40px);margin:0 20px 24px;padding:18px;background:linear-gradient(135deg,var(--rust),var(--rust-light));color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s;flex-shrink:0;}
 .btn-start:active{opacity:.85;}
- 
+
 /* ── HOME ── */
 .home-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:32px;}
 .home-logo{font-family:'Fraunces',serif;font-size:32px;font-weight:700;text-align:center;}
@@ -76,7 +76,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .btn-home-desc{font-size:12px;color:var(--muted);margin-top:2px;}
 .btn-home.primary{background:linear-gradient(135deg,var(--rust),var(--rust-light));color:white;border-color:transparent;}
 .btn-home.primary .btn-home-desc{color:rgba(255,255,255,.75);}
- 
+
 /* ── ROOMS ── */
 .rooms-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .progress-bar-wrap{height:3px;background:var(--border);}
@@ -92,7 +92,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .room-thumb{width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;}
 .room-thumb.has-comment{outline:2px solid var(--rust);}
 .rooms-empty{padding:48px 24px;text-align:center;color:var(--muted);}
- 
+
 .section-card{margin:0 20px 12px;background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px;}
 .section-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin-bottom:14px;color:var(--brown);}
 .compteur-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--warm);border-radius:10px;margin-bottom:8px;}
@@ -106,10 +106,10 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .btn-sign-wrap{padding:16px 20px 0;}
 .btn-sign{width:100%;padding:16px;background:linear-gradient(135deg,var(--sage),var(--sage-light));color:white;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;}
 .btn-sign:disabled{opacity:.4;cursor:not-allowed;}
- 
+
 /* ── ROOM DETAIL ── */
 .photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px;}
- 
+
 /* ── SIGNATURES ── */
 .sig-block{background:var(--white);border:1.5px solid var(--border);border-radius:16px;margin-bottom:14px;overflow:hidden;}
 .sig-block.signed{border-color:var(--sage);}
@@ -130,20 +130,20 @@ input:focus,textarea:focus{border-color:var(--rust);}
 #btn-pdf-final{width:calc(100% - 32px);margin:0 16px 16px;padding:18px;background:linear-gradient(135deg,var(--rust),var(--rust-light));color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;flex-shrink:0;}
 #btn-pdf-final:disabled{opacity:.4;cursor:not-allowed;}
 .sig-missing-msg{display:none;background:rgba(196,98,45,.08);border:1.5px solid rgba(196,98,45,.3);border-radius:10px;padding:10px 14px;margin:0 16px 12px;font-size:13px;color:var(--rust);font-weight:500;}
- 
+
 /* ── ARCHIVE ── */
 .archive-body{padding:20px 0;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
- 
+
 /* ── VIEWER ── */
 .viewer-body{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .viewer-frame{flex:1;border:none;width:100%;}
- 
+
 /* ── NAV BAR ── */
 .nav-bar{display:flex;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);}
 .nav-btn{flex:1;padding:10px 6px 12px;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;}
 .nav-btn.active{color:var(--rust);}
 .nav-icon{font-size:20px;}
- 
+
 /* ── MODALS ── */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(26,23,20,.5);align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -155,14 +155,14 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .modal-actions{display:flex;gap:10px;margin-top:16px;}
 .btn-modal-cancel{flex:1;padding:14px;background:var(--warm);border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);}
 .btn-modal-confirm{flex:2;padding:14px;background:linear-gradient(135deg,var(--rust),var(--rust-light));border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
- 
+
 /* ── PRESETS ── */
 .presets-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
 .preset-btn{padding:10px 6px;background:var(--warm);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .15s;font-family:'DM Sans',sans-serif;}
 .preset-btn.selected{border-color:var(--rust);background:rgba(196,98,45,.07);}
 .preset-icon{font-size:20px;display:block;margin-bottom:4px;}
 .preset-name{font-size:11px;font-weight:600;color:var(--dark);}
- 
+
 /* ── PHOTO MODAL ── */
 .photo-modal-img{width:100%;border-radius:14px;object-fit:cover;max-height:260px;display:block;margin-bottom:14px;}
 .etat-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
@@ -171,14 +171,14 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .comment-input-wrap{display:flex;gap:8px;margin-top:10px;}
 .comment-input-wrap textarea{flex:1;padding:10px 12px;border-radius:10px;resize:none;height:44px;font-size:14px;}
 .btn-add-comment{padding:10px 14px;background:var(--rust);color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;}
- 
+
 /* ── COMPTEUR MODAL ── */
 .ctype-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .ctype-btn{padding:10px;background:var(--warm);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;transition:all .15s;}
 .ctype-btn.selected{border-color:var(--rust);background:rgba(196,98,45,.07);}
 .ctype-icon{font-size:20px;display:block;margin-bottom:2px;}
 .ctype-label{font-size:11px;font-weight:600;}
- 
+
 /* ── EMAIL MODALS ── */
 .setup-step{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start;}
 .setup-num{width:24px;height:24px;border-radius:50%;background:var(--rust);color:white;font-size:12px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -186,7 +186,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 .setup-text a{color:var(--rust);}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--rust);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
 @keyframes spin{to{transform:rotate(360deg);}}
- 
+
 /* ── PDF OVERLAY ── */
 #pdf-generating{display:none;position:fixed;inset:0;z-index:200;background:rgba(26,23,20,.6);align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 #pdf-generating.show{display:flex;}
@@ -194,10 +194,55 @@ input:focus,textarea:focus{border-color:var(--rust);}
 </style>
 </head>
 <body>
- 
+
+<!-- ══ LOGIN ══ -->
+<div class="screen active" id="login">
+  <div class="home-inner" style="gap:24px">
+    <div id="login-logo-block">
+      <div class="home-logo" style="text-align:center">État des<br/><span>Lieux</span></div>
+      <div class="home-sub" style="margin-top:8px">Connectez-vous pour accéder<br/>à vos états des lieux</div>
+    </div>
+    <div id="login-form-block" style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;">
+      <div class="form-group" style="margin:0">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="votre@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Mot de passe</label>
+        <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div id="auth-error" style="display:none;font-size:13px;color:var(--rust);padding:8px 12px;background:#fef2ee;border-radius:8px;"></div>
+      <button class="btn-home primary" id="btn-login" onclick="authLogin()" style="justify-content:center;margin-top:4px">
+        Se connecter
+      </button>
+      <button class="btn-home" id="btn-signup" onclick="authSignup()" style="justify-content:center">
+        Créer un compte
+      </button>
+      <button onclick="showForgotPassword()" style="background:none;border:none;font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;padding:4px;touch-action:manipulation;">
+        Mot de passe oublié ?
+      </button>
+    </div>
+
+    <!-- Message confirmation email -->
+    <div id="signup-confirm-msg" style="display:none;width:100%;max-width:360px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:16px;padding:24px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">📬</div>
+      <div style="font-size:16px;font-weight:700;color:#166534;margin-bottom:8px;">Vérifiez vos emails</div>
+      <div style="font-size:13px;color:#166534;line-height:1.6;margin-bottom:16px;">Un email de confirmation a été envoyé à<br/><strong id="signup-confirm-email"></strong><br/>Cliquez sur le lien pour activer votre compte.</div>
+      <button onclick="hideSignupConfirm()" style="background:none;border:1.5px solid #86efac;border-radius:10px;padding:10px 20px;color:#166534;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+        Retour à la connexion
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ HOME ══ -->
-<div class="screen active" id="home">
-  <div class="home-inner">
+<div class="screen" id="home">
+  <div class="top-bar">
+    <div style="flex:1"></div>
+    <div></div>
+    <button onclick="goTo('profil')" style="background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--dark);min-height:36px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;font-family:'DM Sans',sans-serif;" id="btn-profil">Mon espace propriétaire</button>
+  </div>
+  <div class="home-inner" style="justify-content:center">
     <div>
       <div class="home-logo">État des<br/><span>Lieux</span></div>
       <div class="home-sub" style="margin-top:8px">Réalisez vos états des lieux<br/>de façon simple et complète</div>
@@ -220,7 +265,44 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
- 
+
+<!-- ══ PROFIL ══ -->
+<div class="screen" id="profil">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('home')">←</button>
+    <div><div class="top-bar-title">Mon profil</div></div>
+    <div></div>
+  </div>
+  <div class="rooms-body" style="padding:20px">
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Compte</div>
+      <div style="font-size:14px;color:var(--dark);margin-bottom:4px;font-weight:600;">Email</div>
+      <div id="profil-email" style="font-size:14px;color:var(--muted);margin-bottom:16px;">—</div>
+      <div style="font-size:14px;color:var(--dark);margin-bottom:4px;font-weight:600;">Plan</div>
+      <div id="profil-plan" style="font-size:14px;color:var(--muted);">—</div>
+    </div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Changer le mot de passe</div>
+      <div class="form-group">
+        <label>Nouveau mot de passe</label>
+        <input type="password" id="profil-new-password" placeholder="Minimum 6 caractères"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Confirmer le mot de passe</label>
+        <input type="password" id="profil-confirm-password" placeholder="Répétez le mot de passe"/>
+      </div>
+      <div id="profil-pwd-msg" style="display:none;font-size:13px;padding:8px 12px;border-radius:8px;margin-bottom:12px;"></div>
+      <button class="btn-modal-confirm" onclick="profilChangePassword()" style="width:100%">Modifier le mot de passe</button>
+    </div>
+    <button onclick="authLogout()" style="width:100%;padding:16px;background:none;border:1.5px solid #e5c5c5;border-radius:14px;color:var(--rust);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;margin-bottom:12px;">
+      Se déconnecter
+    </button>
+    <button onclick="showDeleteAccountWarning()" style="width:100%;padding:16px;background:none;border:1.5px solid #fca5a5;border-radius:14px;color:#991b1b;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+      Supprimer mon compte
+    </button>
+  </div>
+</div>
+
 <!-- ══ SETUP ══ -->
 <div class="screen" id="setup">
   <div class="top-bar">
@@ -272,7 +354,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
   </div>
   <button class="btn-start" onclick="startEdl()" id="btn-start">Commencer l'état des lieux →</button>
 </div>
- 
+
 <!-- ══ ROOMS ══ -->
 <div class="screen" id="rooms">
   <div class="top-bar">
@@ -310,7 +392,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <div style="height:100px"></div>
   </div>
 </div>
- 
+
 <!-- ══ ROOM DETAIL ══ -->
 <div class="screen" id="room-detail">
   <div class="top-bar">
@@ -326,7 +408,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 <input type="file" id="cle-file-gallery" accept="image/*" multiple style="display:none"/>
 <input type="file" id="cle-file-camera" accept="image/*" capture="environment" style="display:none"/>
 </div>
- 
+
 <!-- ══ SIGNATURES ══ -->
 <!-- ══ CLÉ DETAIL ══ -->
 <div class="screen" id="cle-detail">
@@ -339,7 +421,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <div class="photos-grid" id="cle-photos-grid"></div>
   </div>
 </div>
- 
+
 <div class="screen" id="signatures">
   <div class="top-bar">
     <button class="btn-back" onclick="goTo('rooms')">←</button>
@@ -362,7 +444,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
   </div>
   <button id="btn-pdf-final" onclick="tryGeneratePDF()" disabled>📄 Générer le rapport PDF</button>
 </div>
- 
+
 <!-- ══ ARCHIVE ══ -->
 <div class="screen" id="archive">
   <div class="top-bar">
@@ -372,7 +454,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
   </div>
   <div class="archive-body" id="archive-list"></div>
 </div>
- 
+
 <!-- ══ VIEWER ══ -->
 <div class="screen" id="viewer">
   <div class="top-bar">
@@ -382,15 +464,15 @@ input:focus,textarea:focus{border-color:var(--rust);}
   </div>
   <div class="viewer-body"><iframe id="viewer-frame" class="viewer-frame"></iframe></div>
 </div>
- 
+
 <!-- PDF overlay -->
 <div id="pdf-generating">
   <div class="spinner" style="width:40px;height:40px;border-color:rgba(255,255,255,.3);border-top-color:white;"></div>
   <p>Génération du rapport…</p>
 </div>
- 
+
 <!-- ══ MODALS ══ -->
- 
+
 <!-- Add room -->
 <div class="modal-overlay" id="add-room-modal">
   <div class="modal-sheet">
@@ -407,7 +489,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
- 
+
 <!-- Photo source -->
 <div class="modal-overlay" id="photo-source-modal">
   <div class="modal-sheet">
@@ -420,7 +502,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('photo-source-modal')">Annuler</button>
   </div>
 </div>
- 
+
 <!-- Photo detail -->
 <div class="modal-overlay" id="photo-modal">
   <div class="modal-sheet">
@@ -439,7 +521,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('photo-modal')">Fermer</button>
   </div>
 </div>
- 
+
 <!-- Add compteur -->
 <div class="modal-overlay" id="add-compteur-modal">
   <div class="modal-sheet">
@@ -468,7 +550,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
- 
+
 <!-- Confirm -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal-sheet">
@@ -480,15 +562,15 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
- 
- 
+
+
 <div class="spinner" id="email-spinner"></div>
     <div id="email-sending-status" style="font-size:15px;font-weight:500;margin:16px 0;color:var(--dark)">Envoi en cours…</div>
     <button id="email-sending-close" onclick="closeModal('email-sending-modal')" class="btn-modal-cancel" style="display:none;width:100%">Fermer</button>
   </div>
 </div>
- 
- 
+
+
 <div class="modal-overlay" id="add-cle-modal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -531,10 +613,237 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <button class="btn-modal-cancel" style="width:100%;margin-top:10px;" onclick="closeModal('cle-photo-modal')">Fermer</button>
   </div>
 </div>
+
+<div class="modal-overlay" id="delete-account-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="delete-step-1">
+      <div style="font-size:22px;text-align:center;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:16px;font-weight:700;color:var(--dark);text-align:center;margin-bottom:12px;">Supprimer mon compte</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;text-align:center;">
+        Cette action est <strong>irréversible</strong>.<br/>
+        Votre compte et <strong>tous vos états des lieux</strong> seront définitivement supprimés.<br/><br/>
+        Êtes-vous sûr de vouloir continuer ?
+      </div>
+      <div class="modal-actions" style="flex-direction:column;gap:10px;">
+        <button onclick="showDeleteAccountConfirm()" style="width:100%;padding:14px;background:#991b1b;border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+          Oui, continuer
+        </button>
+        <button onclick="closeModal('delete-account-modal')" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:12px;color:var(--dark);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+          Annuler
+        </button>
+      </div>
+    </div>
+    <div id="delete-step-2" style="display:none;">
+      <div style="font-size:22px;text-align:center;margin-bottom:12px;">🗑️</div>
+      <div style="font-size:16px;font-weight:700;color:#991b1b;text-align:center;margin-bottom:12px;">Confirmation finale</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;text-align:center;">
+        Cliquez sur <strong>Supprimer définitivement</strong> pour effacer votre compte et toutes vos données.
+      </div>
+      <div id="delete-account-error" style="display:none;font-size:13px;color:var(--rust);padding:8px 12px;background:#fef2ee;border-radius:8px;margin-bottom:12px;"></div>
+      <div class="modal-actions" style="flex-direction:column;gap:10px;">
+        <button onclick="deleteAccount()" id="btn-delete-account-confirm" style="width:100%;padding:14px;background:#991b1b;border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+          Supprimer définitivement
+        </button>
+        <button onclick="closeModal('delete-account-modal')" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:12px;color:var(--dark);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="upgrade-modal"><div class="modal-sheet"><div class="modal-handle"></div><div style="text-align:center;margin-bottom:20px;"><div style="font-size:32px;margin-bottom:8px;">⭐</div><div style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:4px;">Passez en version illimitée</div><div style="font-size:13px;color:var(--muted);">5,99 € / mois</div></div><div style="background:var(--warm);border-radius:12px;padding:16px;margin-bottom:20px;"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--border);"><div style="font-size:12px;font-weight:700;color:var(--dark);">Fonctionnalité</div><div style="font-size:12px;font-weight:700;color:#92400e;text-align:center;">Version d’essai</div><div style="font-size:12px;font-weight:700;color:#166534;text-align:center;">Particulier</div></div><div style="display:flex;flex-direction:column;gap:0;"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--muted);">États des lieux</span><span style="font-size:13px;color:#92400e;font-weight:600;text-align:center;">1</span><span style="font-size:13px;color:#166534;font-weight:600;text-align:center;">Illimité</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--muted);">Export PDF</span><span style="font-size:13px;color:#92400e;font-weight:600;text-align:center;">✓</span><span style="font-size:13px;color:#166534;font-weight:600;text-align:center;">✓</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--muted);">Sauvegarde cloud</span><span style="font-size:13px;color:#92400e;font-weight:600;text-align:center;">✓</span><span style="font-size:13px;color:#166534;font-weight:600;text-align:center;">✓</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;"><span style="font-size:13px;color:var(--muted);">Support prioritaire</span><span style="font-size:13px;color:#92400e;font-weight:600;text-align:center;">—</span><span style="font-size:13px;color:#166534;font-weight:600;text-align:center;">✓</span></div></div></div><div style="text-align:center;font-size:22px;font-weight:700;color:var(--rust);margin-bottom:20px;">5,99 € <span style="font-size:13px;font-weight:400;color:var(--muted);">/ mois</span></div><div class="modal-actions" style="flex-direction:column;gap:10px;"><button onclick="startCheckout()" id="btn-subscribe" style="width:100%;padding:14px;background:var(--rust);border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">Souscrire maintenant</button><button onclick="closeModal('upgrade-modal')" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:12px;color:var(--dark);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">Annuler</button></div></div></div>
 <script>
- 
- 
- 
+// ─── SUPABASE ─────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://nxjwocmidveiqspzgkmg.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q';
+
+async function sbFetch(path, options = {}) {
+  const session = getSession();
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    ...(session ? {'Authorization': 'Bearer ' + session.access_token} : {'Authorization': 'Bearer ' + SUPABASE_KEY}),
+    ...options.headers
+  };
+  const res = await fetch(SUPABASE_URL + path, { ...options, headers });
+  const text = await res.text();
+  let data = null;
+  try { data = JSON.parse(text); } catch(e) {}
+  if (!res.ok) throw new Error((data && (data.error_description || data.message || data.msg)) || text || res.status);
+  return data;
+}
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('edl_session')); } catch(e) { return null; }
+}
+function setSession(s) {
+  if (s) localStorage.setItem('edl_session', JSON.stringify(s));
+  else localStorage.removeItem('edl_session');
+}
+function getCurrentUser() {
+  const s = getSession();
+  return s ? s.user : null;
+}
+
+
+async function showForgotPassword() {
+  const errEl = document.getElementById('auth-error');
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) {
+    errEl.textContent = 'Entrez votre email ci-dessus puis cliquez "Mot de passe oublié".';
+    errEl.style.background = '#fef2ee'; errEl.style.color = 'var(--rust)';
+    errEl.style.display = 'block'; return;
+  }
+  try {
+    await sbFetch('/auth/v1/recover', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+    errEl.textContent = '✓ Email envoyé ! Vérifiez votre boîte mail pour réinitialiser votre mot de passe.';
+    errEl.style.background = '#f0fdf4'; errEl.style.color = '#166534';
+    errEl.style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'Erreur : ' + e.message;
+    errEl.style.background = '#fef2ee'; errEl.style.color = 'var(--rust)';
+    errEl.style.display = 'block';
+  }
+}
+
+async function ensureProfile(user) {
+  if (!user) return;
+  try {
+    const existing = await sbFetch('/rest/v1/profiles?id=eq.' + user.id + '&select=id');
+    if (Array.isArray(existing) && existing.length > 0) return;
+    await sbFetch('/rest/v1/profiles', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=ignore-duplicates' },
+      body: JSON.stringify({ id: user.id, email: user.email, plan: 'trial' })
+    });
+  } catch(e) { console.warn('ensureProfile:', e); }
+}
+
+
+function hideSignupConfirm() {
+  document.getElementById('signup-confirm-msg').style.display = 'none';
+  document.getElementById('login-logo-block').style.display = '';
+  document.getElementById('login-form-block').style.display = '';
+  document.getElementById('auth-email').value = '';
+  document.getElementById('auth-password').value = '';
+}
+
+async function authLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Remplissez email et mot de passe.'; errEl.style.display = 'block'; return; }
+  document.getElementById('btn-login').textContent = 'Connexion…';
+  try {
+    const data = await sbFetch('/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    if (data.expires_in && !data.expires_at) {
+      data.expires_at = Math.floor(Date.now()/1000) + data.expires_in;
+    }
+    setSession(data);
+    // Créer le profil si inexistant
+    await ensureProfile(data.user);
+    goTo('home');
+  } catch(e) {
+    errEl.textContent = e.message.includes('Invalid') ? 'Email ou mot de passe incorrect.' : e.message;
+    errEl.style.display = 'block';
+  } finally {
+    document.getElementById('btn-login').textContent = 'Se connecter';
+  }
+}
+
+async function authSignup() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Remplissez email et mot de passe.'; errEl.style.display = 'block'; return; }
+  if (password.length < 6) { errEl.textContent = 'Le mot de passe doit faire au moins 6 caractères.'; errEl.style.display = 'block'; return; }
+  document.getElementById('btn-signup').textContent = 'Création…';
+  try {
+    const data = await sbFetch('/auth/v1/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    if (data.user && !data.session) {
+      document.getElementById('signup-confirm-email').textContent = email;
+      document.getElementById('login-logo-block').style.display = 'none';
+      document.getElementById('login-form-block').style.display = 'none';
+      document.getElementById('signup-confirm-msg').style.display = 'block';
+    } else if (data.session) {
+      if (data.session.expires_in && !data.session.expires_at) {
+        data.session.expires_at = Math.floor(Date.now()/1000) + data.session.expires_in;
+      }
+      setSession(data.session);
+      await ensureProfile(data.user);
+      goTo('home');
+    }
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    document.getElementById('btn-signup').textContent = 'Créer un compte';
+  }
+}
+
+function authLogout() {
+  setSession(null);
+  goTo('login');
+}
+
+async function refreshSession() {
+  const session = getSession();
+  if (!session || !session.refresh_token) return false;
+  // Vérifier expiration
+  const exp = session.expires_at || (session.expires_in ? Math.floor(Date.now()/1000) + session.expires_in : 0);
+  if (exp && Math.floor(Date.now()/1000) < exp - 60) return true; // encore valide
+  try {
+    const data = await sbFetch('/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    setSession(data);
+    return true;
+  } catch(e) {
+    setSession(null);
+    return false;
+  }
+}
+
+// ─── SAUVEGARDE SUPABASE ──────────────────────────────────────────
+async function saveToSupabase(localId, fullRecord) {
+  try {
+    const valid = await refreshSession();
+    if (!valid) return;
+    const user = getCurrentUser();
+    if (!user) return;
+    // fullRecord contient toutes les données avec photos résolues
+    await sbFetch('/rest/v1/edl_records', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        id: localId,
+        user_id: user.id,
+        data: fullRecord
+      })
+    });
+  } catch(e) {
+    console.warn('Supabase save error:', e.message);
+  }
+}
+
+
+
+
+
 // ─── STATE ───────────────────────────────────────
 const state = {
   type: 'entree',
@@ -555,14 +864,17 @@ const state = {
   selectedPreset: null,
   _started: false,
 };
- 
+
 // ─── NAVIGATION ──────────────────────────────────
 function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
+  if (screenId === 'profil') renderProfil();
 }
- 
-function newEdl() {
+
+async function newEdl() {
+  const canCreate = await checkCanCreateEDL();
+  if (!canCreate) return;
   Object.assign(state, {
     type: 'entree', adresse: '', proprietaire: '', proprietaireEmail: '',
     locataires: [{ nom: '', email: '' }], date: '', rooms: [], compteurs: [], cles: [],
@@ -589,14 +901,14 @@ function newEdl() {
   selectType('entree');
   goTo('setup');
 }
- 
+
 // ─── SETUP ───────────────────────────────────────
 function selectType(type) {
   state.type = type;
   document.getElementById('toggle-entree').classList.toggle('selected', type === 'entree');
   document.getElementById('toggle-sortie').classList.toggle('selected', type === 'sortie');
 }
- 
+
 function addLocataireField() {
   const list = document.getElementById('locataires-list');
   const rows = list.querySelectorAll('.locataire-row');
@@ -621,7 +933,7 @@ function addLocataireField() {
     document.getElementById('btn-add-locataire').style.pointerEvents = 'none';
   }
 }
- 
+
 function removeLocataireField(btn) {
   const row = btn.closest('.locataire-row');
   row.remove();
@@ -634,7 +946,7 @@ function removeLocataireField(btn) {
   document.getElementById('btn-add-locataire').style.opacity = '1';
   document.getElementById('btn-add-locataire').style.pointerEvents = 'auto';
 }
- 
+
 function restoreSetupFields() {
   const btnStart = document.getElementById('btn-start');
   if (btnStart) {
@@ -673,7 +985,7 @@ function restoreSetupFields() {
     btnAdd.style.opacity = '1'; btnAdd.style.pointerEvents = 'auto';
   }
 }
- 
+
 function startEdl() {
   const adresse = document.getElementById('input-adresse').value.trim();
   const proprietaire = document.getElementById('input-proprietaire').value.trim();
@@ -683,10 +995,10 @@ function startEdl() {
   const locataireEmailInput = document.querySelector('#locataire-row-0 .locataire-email');
   const locataireEmail = locataireEmailInput ? locataireEmailInput.value.trim() : '';
   const date = document.getElementById('input-date').value;
- 
+
   const setError = (id, hasError) => document.getElementById(id).classList.toggle('field-error', hasError);
   const showMsg = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? 'block' : 'none'; };
- 
+
   setError('fg-adresse', !adresse);
   setError('fg-proprietaire', !proprietaire || !proprietaireEmail);
   showMsg('err-proprietaire-nom', !proprietaire);
@@ -695,21 +1007,21 @@ function startEdl() {
   showMsg('err-locataire-nom', locatairesRemplis.length === 0);
   showMsg('err-locataire-email', locatairesRemplis.length > 0 && !locataireEmail);
   setError('fg-date', !date);
- 
+
   if (!adresse || !proprietaire || !proprietaireEmail || locatairesRemplis.length === 0 || !locataireEmail || !date) return;
- 
+
   state.adresse = adresse;
   state.proprietaire = proprietaire;
   state.proprietaireEmail = proprietaireEmail;
   state.date = date;
- 
+
   const rows = document.querySelectorAll('.locataire-row');
   state.locataires = Array.from(rows).map(row => {
     const nom = (row.querySelector('.locataire-input')?.value || '').trim();
     const email = (row.querySelector('.locataire-email')?.value || '').trim();
     return nom ? { nom, email } : null;
   }).filter(Boolean);
- 
+
   if (!state._started) { state.rooms = []; state._started = true; }
   document.getElementById('rooms-title').textContent = state.adresse;
   document.getElementById('rooms-badge').textContent = state.type === 'entree' ? 'ENTRÉE' : 'SORTIE';
@@ -717,7 +1029,7 @@ function startEdl() {
   goTo('rooms');
   renderRooms();
 }
- 
+
 // ─── ROOMS ───────────────────────────────────────
 function renderRooms() {
   var list = document.getElementById('rooms-list');
@@ -764,7 +1076,7 @@ function renderRooms() {
   }
   list.innerHTML = html;
 }
- 
+
 // ─── COMPTEURS ───────────────────────────────────
 const COMPTEUR_TYPES = {
   elec:       { label: 'Électricité', icon: '⚡', unite: 'kWh' },
@@ -773,7 +1085,7 @@ const COMPTEUR_TYPES = {
   eau_chaude: { label: 'Eau chaude',  icon: '🌡️', unite: 'm³'  },
 };
 let selectedCompteurType = 'elec';
- 
+
 function openAddCompteur() {
   selectedCompteurType = 'elec'; selectCompteurType('elec');
   document.getElementById('input-compteur-numero').value = '';
@@ -806,7 +1118,7 @@ function renderCompteurs() {
     container.appendChild(card);
   });
 }
- 
+
 // ─── PRESETS ─────────────────────────────────────
 const PRESETS = [
   { name: 'Entrée', icon: '🚪' }, { name: 'Salon', icon: '🛋️' }, { name: 'Cuisine', icon: '🍳' },
@@ -839,16 +1151,16 @@ function confirmAddRoom() {
   state.rooms.push({ id: uid(), name, icon, photos: [] });
   closeModal('add-room-modal'); renderRooms();
 }
- 
+
 // ─── ROOM DETAIL ─────────────────────────────────
 function getRoom(id) { return state.rooms.find(r => r.id === id); }
 function getPhoto(roomId, photoId) { return getRoom(roomId)?.photos.find(p => p.id === photoId); }
- 
+
 function openRoom(roomId) {
   state.currentRoomId = roomId; state.currentPhotoId = null;
   goTo('room-detail'); renderRoomDetail();
 }
- 
+
 function renderRoomDetail() {
   var room = getRoom(state.currentRoomId);
   if (!room) return;
@@ -875,7 +1187,7 @@ function renderRoomDetail() {
         + '<span style="font-size:24px">📷</span>Ajouter</div>';
   grid.innerHTML = html;
 }
- 
+
 function handleFileSelect(event) {
   const files = Array.from(event.target.files);
   const room = getRoom(state.currentRoomId);
@@ -891,7 +1203,7 @@ function handleFileSelect(event) {
   });
   event.target.value = '';
 }
- 
+
 function deletePhoto(photoId) {
   showConfirm('Supprimer cette photo et ses commentaires ?', () => {
     const room = getRoom(state.currentRoomId);
@@ -899,14 +1211,14 @@ function deletePhoto(photoId) {
     renderRoomDetail();
   });
 }
- 
+
 function deleteRoom(roomId) {
   showConfirm('Supprimer cette pièce et toutes ses photos ?', () => {
     state.rooms = state.rooms.filter(r => r.id !== roomId);
     renderRooms();
   });
 }
- 
+
 // ─── PHOTO MODAL ─────────────────────────────────
 function openPhotoModal(photoId) {
   state.currentPhotoId = photoId;
@@ -951,7 +1263,7 @@ function toggleEtat(el, etat) {
   if (!already) el.classList.add('selected');
   renderRoomDetail();
 }
- 
+
 // ─── SIGNATURES ──────────────────────────────────
 function renderSignatures() {
   if (!state.signatures) state.signatures = {};
@@ -1004,7 +1316,7 @@ function renderSignatures() {
   });
   refreshPdfButton();
 }
- 
+
 function initCanvas(canvasId) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -1074,7 +1386,7 @@ function tryGeneratePDF() {
   }
   generatePDF();
 }
- 
+
 // ─── GENERATE PDF ────────────────────────────────
 async function generatePDF() {
   const gen = document.getElementById('pdf-generating');
@@ -1096,7 +1408,7 @@ async function generatePDF() {
     console.error(e); alert('Erreur lors de la génération : ' + e.message);
   }
 }
- 
+
 function buildReportHTML(s) {
   const typeColor = s.type === 'entree' ? '#7a9e87' : '#c4622d';
   const typeLabel = s.type === 'entree' ? 'ÉTAT DES LIEUX D\'ENTRÉE' : 'ÉTAT DES LIEUX DE SORTIE';
@@ -1112,7 +1424,7 @@ function buildReportHTML(s) {
         ${(s.compteurs || []).map(c => `<tr style="border-bottom:1px solid #ede6d6;"><td style="padding:6px 10px;">${c.icon||''} ${c.label||c.type}</td><td style="padding:6px 10px;color:#8c7b6b;">${c.numero||'—'}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:${typeColor}">${c.releve} ${c.unite}</td></tr>`).join('')}
       </table>
     </div>` : '';
- 
+
   const etatBg = { 'Bon état':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2' };
   const etatCl = { 'Bon état':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b' };
   const clesHTML = (s.cles || []).map(cle => {
@@ -1185,6 +1497,7 @@ function buildReportHTML(s) {
         <div class="summary-item"><div class="summary-num">${totalComments}</div><div class="summary-label">Commentaire${totalComments>1?'s':''}</div></div>
       </div>
       ${compteursHTML}
+      <div style="margin-bottom:24px;padding:16px 20px;background:#f5f0e8;border-radius:8px;border-left:3px solid ${typeColor};"><p style="font-size:10px;color:#5a4a3a;line-height:1.7;margin:0;">L’état des lieux doit être établi de façon contradictoire entre les deux parties lors de la remise des clés au locataire et lors de leur restitution en fin de bail, conformément à l’article 3 de la Loi n°89-462 du 6 juillet 1989. Il fait partie du contrat de location, dont il ne peut être dissocié. L’état des lieux d’entrée peut être complété par le locataire dans les 10 jours suivant sa tenue (et pendant le 1er mois de chauffe pour les éléments de chauffage).</p></div>
       <div class="toc-title">Sommaire</div>
       ${(s.rooms||[]).map((r,i) => `<div class="toc-row"><span>${i+1}. ${r.icon} ${r.name}</span><span style="color:#8c7b6b">${r.photos.length} photo${r.photos.length!==1?'s':''}</span></div>`).join('')}
     </div>
@@ -1207,7 +1520,7 @@ function buildReportHTML(s) {
       </div>`).join('')}</div>`}
   </div>`).join('')}
   ${clesHTML}
- 
+
   <div class="page-break sig-section">
     <div class="sig-title">Signatures</div>
     <div class="sig-intro">Le présent état des lieux a été établi contradictoirement entre les parties soussignées qui le reconnaissent exact et en ont reçu chacune un exemplaire.</div>
@@ -1233,7 +1546,7 @@ function buildReportHTML(s) {
   </body></html>`;
   return html;
 }
- 
+
 // ─── IMAGE COMPRESSION ───────────────────────────
 function compressImage(src, maxW, maxH, quality) {
   return new Promise(resolve => {
@@ -1250,7 +1563,7 @@ function compressImage(src, maxW, maxH, quality) {
     img.src = src;
   });
 }
- 
+
 // ─── INDEXEDDB ───────────────────────────────────
 const DB_NAME = 'edl_db', DB_VERSION = 1;
 let _db = null;
@@ -1272,8 +1585,8 @@ function dbGet(store, id) { return openDB().then(db => new Promise((res, rej) =>
 function dbDel(store, id) { return openDB().then(db => new Promise((res, rej) => { const tx = db.transaction(store,'readwrite'); tx.objectStore(store).delete(id); tx.oncomplete = () => res(true); tx.onerror = e => rej(e.target.error); })); }
 function dbGetAll(store) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).getAll(); req.onsuccess = e => res(e.target.result||[]); req.onerror = e => rej(e.target.error); })); }
 function dbGetAllKeys(store) { return openDB().then(db => new Promise((res, rej) => { const req = db.transaction(store,'readonly').objectStore(store).getAllKeys(); req.onsuccess = e => res(e.target.result||[]); req.onerror = e => rej(e.target.error); })); }
- 
- 
+
+
 // ── CLÉS ─────────────────────────────────────────────────────────
 function openAddCle() {
   document.getElementById('input-cle-titre').value = '';
@@ -1403,7 +1716,184 @@ function handleCleFileSelect(event) {
   });
   event.target.value = '';
 }
- 
+
+
+// ─── PROFIL ───────────────────────────────────────────────────────
+async function renderProfil() {
+  const planEl = document.getElementById("profil-plan");
+  if (planEl) {
+    const plan = await loadUserPlan();
+    if (plan === "unlimited") {
+      planEl.innerHTML = "<span style=\"color:#166534;font-weight:700;background:#dcfce7;padding:3px 10px;border-radius:20px;font-size:13px;\">✓ Illimité</span>";
+    } else {
+      planEl.innerHTML = "<span style=\"color:#92400e;font-weight:700;background:#fef3c7;padding:3px 10px;border-radius:20px;font-size:13px;\">Version d’essai — 1 EDL</span>";
+      const upgradeBtn = document.createElement("button");
+      upgradeBtn.textContent = "Passer en illimité";
+      upgradeBtn.style.cssText = "margin-left:10px;background:var(--rust);border:none;border-radius:10px;padding:8px 16px;color:white;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation;font-family:inherit;";
+      upgradeBtn.onclick = function() { openModal("upgrade-modal"); };
+      planEl.appendChild(upgradeBtn);
+    }
+  }
+  const user = getCurrentUser();
+  const el = document.getElementById('profil-email');
+  if (el && user) el.textContent = user.email || '—';
+  document.getElementById('profil-new-password').value = '';
+  document.getElementById('profil-confirm-password').value = '';
+  const msg = document.getElementById('profil-pwd-msg');
+  if (msg) msg.style.display = 'none';
+}
+
+async function profilChangePassword() {
+  const newPwd = document.getElementById('profil-new-password').value;
+  const confirmPwd = document.getElementById('profil-confirm-password').value;
+  const msg = document.getElementById('profil-pwd-msg');
+  msg.style.display = 'none';
+
+  if (!newPwd || newPwd.length < 6) {
+    msg.textContent = 'Le mot de passe doit faire au moins 6 caractères.';
+    msg.style.background = '#fef2ee'; msg.style.color = 'var(--rust)';
+    msg.style.display = 'block'; return;
+  }
+  if (newPwd !== confirmPwd) {
+    msg.textContent = 'Les mots de passe ne correspondent pas.';
+    msg.style.background = '#fef2ee'; msg.style.color = 'var(--rust)';
+    msg.style.display = 'block'; return;
+  }
+  try {
+    const valid = await refreshSession();
+    if (!valid) { authLogout(); return; }
+    const session = getSession();
+    await sbFetch('/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ password: newPwd })
+    });
+    msg.textContent = '✓ Mot de passe modifié avec succès.';
+    msg.style.background = '#f0fdf4'; msg.style.color = '#166534';
+    msg.style.display = 'block';
+    document.getElementById('profil-new-password').value = '';
+    document.getElementById('profil-confirm-password').value = '';
+  } catch(e) {
+    msg.textContent = 'Erreur : ' + e.message;
+    msg.style.background = '#fef2ee'; msg.style.color = 'var(--rust)';
+    msg.style.display = 'block';
+  }
+}
+
+// ─── PLAN UTILISATEUR ────────────────────────────────────────────
+async function loadUserPlan() {
+  try {
+    const valid = await refreshSession();
+    if (!valid) return "trial";
+    const data = await sbFetch("/rest/v1/profiles?select=plan&limit=1");
+    if (Array.isArray(data) && data[0]) return data[0].plan || "trial";
+  } catch(e) { console.warn("loadUserPlan:", e); }
+  return "trial";
+}
+
+async function getUserEDLCount() {
+  try {
+    const isOnline = location.protocol === "https:";
+    if (isOnline) {
+      const valid = await refreshSession();
+      if (!valid) return 0;
+      const data = await sbFetch("/rest/v1/edl_records?select=id");
+      return Array.isArray(data) ? data.length : 0;
+    } else {
+      const records = await dbGetAll("records");
+      return records.length;
+    }
+  } catch(e) { return 0; }
+}
+
+async function checkCanCreateEDL() {
+  const plan = await loadUserPlan();
+  if (plan === "unlimited") return true;
+  const count = await getUserEDLCount();
+  if (count >= 1) {
+    const overlay = document.getElementById("confirm-modal");
+    document.getElementById("confirm-message").innerHTML = "Votre compte d’essai est limité à 1 état des lieux. Contactez-nous pour passer en compte illimité.";
+    overlay.classList.add("open");
+    const btnOk = document.getElementById("confirm-ok");
+    btnOk.style.display = "none";
+    const btnCancel = document.getElementById("confirm-cancel");
+    const newCancel = btnCancel.cloneNode(true);
+    newCancel.textContent = "Fermer";
+    btnCancel.parentNode.replaceChild(newCancel, btnCancel);
+    newCancel.addEventListener("click", () => {
+      overlay.classList.remove("open");
+      btnOk.style.display = "";
+    });
+    return false;
+  }
+  return true;
+}
+
+
+async function startCheckout() {
+  const user = getCurrentUser();
+  if (!user) { authLogout(); return; }
+  const btn = document.getElementById('btn-subscribe');
+  if (btn) { btn.textContent = 'Chargement…'; btn.disabled = true; }
+  try {
+    const valid = await refreshSession();
+    if (!valid) { authLogout(); return; }
+    const sess = getSession();
+    const baseUrl = location.protocol === 'https:'
+      ? location.origin + location.pathname
+      : 'https://clement501.github.io/Etat-des-lieux/';
+    const res = await fetch('https://nxjwocmidveiqspzgkmg.supabase.co/functions/v1/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.access_token },
+      body: JSON.stringify({
+        user_id: user.id, email: user.email,
+        price_id: 'price_1TM3P2BZyXijDnRtWATLYQhH',
+        success_url: baseUrl + '?checkout=success',
+        cancel_url: baseUrl + '?checkout=cancel'
+      })
+    });
+    const data = await res.json();
+    if (data.url) { closeModal('upgrade-modal'); window.location.href = data.url; }
+    else { alert('Erreur : ' + (data.error || 'Impossible de lancer le paiement')); }
+  } catch(e) { alert('Erreur : ' + e.message); }
+  finally { if (btn) { btn.textContent = 'Souscrire maintenant'; btn.disabled = false; } }
+}
+
+function showDeleteAccountWarning() {
+  document.getElementById('delete-step-1').style.display = 'block';
+  document.getElementById('delete-step-2').style.display = 'none';
+  document.getElementById('delete-account-error').style.display = 'none';
+  openModal('delete-account-modal');
+}
+
+function showDeleteAccountConfirm() {
+  document.getElementById('delete-step-1').style.display = 'none';
+  document.getElementById('delete-step-2').style.display = 'block';
+}
+
+async function deleteAccount() {
+  const btn = document.getElementById('btn-delete-account-confirm');
+  const errEl = document.getElementById('delete-account-error');
+  btn.textContent = 'Suppression…';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+  try {
+    const valid = await refreshSession();
+    if (!valid) { authLogout(); return; }
+    // Appeler la fonction SQL delete_own_account()
+    await sbFetch('/rest/v1/rpc/delete_own_account', { method: 'POST', body: '{}' });
+    setSession(null);
+    closeModal('delete-account-modal');
+    goTo('login');
+  } catch(e) {
+    errEl.textContent = 'Erreur lors de la suppression : ' + e.message;
+    errEl.style.background = '#fef2ee';
+    errEl.style.color = '#991b1b';
+    errEl.style.display = 'block';
+    btn.textContent = 'Supprimer définitivement';
+    btn.disabled = false;
+  }
+}
 // ─── ARCHIVE ─────────────────────────────────────
 async function saveToArchive() {
   try {
@@ -1445,6 +1935,40 @@ async function saveToArchive() {
       rooms: roomsLight, cles: clesLight, signatures: sigsLight,
     };
     await dbSet('records', record);
+    // Résoudre les blobs pour Supabase (données complètes)
+    if (getCurrentUser()) {
+      try {
+        const fullRooms = await Promise.all(roomsLight.map(async room => ({
+          ...room,
+          photos: await Promise.all(room.photos.map(async photo => {
+            if (photo.src && photo.src.startsWith('__blob__')) {
+              const blob = await dbGet('blobs', photo.src.replace('__blob__',''));
+              return { ...photo, src: blob ? blob.data : '' };
+            }
+            return photo;
+          }))
+        })));
+        const fullCles = await Promise.all(clesLight.map(async cle => ({
+          ...cle,
+          photos: await Promise.all(cle.photos.map(async photo => {
+            if (photo.src && photo.src.startsWith('__blob__')) {
+              const blob = await dbGet('blobs', photo.src.replace('__blob__',''));
+              return { ...photo, src: blob ? blob.data : '' };
+            }
+            return photo;
+          }))
+        })));
+        const fullSigs = {};
+        await Promise.all(Object.entries(sigsLight).map(async ([k, v]) => {
+          if (v && v.startsWith('__blob__')) {
+            const blob = await dbGet('blobs', v.replace('__blob__',''));
+            fullSigs[k] = blob ? blob.data : '';
+          } else { fullSigs[k] = v; }
+        }));
+        const fullRecord = { ...record, rooms: fullRooms, cles: fullCles, signatures: fullSigs };
+        saveToSupabase(id, fullRecord).catch(e => console.warn('Supabase:', e));
+      } catch(e) { console.warn('Supabase prep error:', e); }
+    }
     return id;
   } catch(e) {
     console.error('Erreur sauvegarde:', e);
@@ -1452,14 +1976,32 @@ async function saveToArchive() {
     return null;
   }
 }
- 
+
 async function renderArchive() {
   const container = document.getElementById('archive-list');
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>';
   try {
-    const records = await dbGetAll('records');
-    records.sort((a,b) => b.savedAt.localeCompare(a.savedAt));
+    let records = [];
+    const user = getCurrentUser();
+    const isOnline = location.protocol === 'https:';
+
+    if (user && isOnline) {
+      // En ligne et connecté : charger depuis Supabase
+      const valid = await refreshSession();
+      if (valid) {
+        const sbRecords = await sbFetch('/rest/v1/edl_records?select=id,data&order=data->>savedAt.desc');
+        if (Array.isArray(sbRecords)) {
+          records = sbRecords.map(r => ({ ...r.data, id: r.id }));
+        }
+      }
+    } else {
+      // En local (file://) ou pas connecté : charger depuis IndexedDB
+      records = await dbGetAll('records');
+    }
+
+    records.sort((a,b) => (b.savedAt||'').localeCompare(a.savedAt||''));
     document.getElementById('archive-sub').textContent = records.length === 0 ? 'Aucun dossier' : `${records.length} dossier${records.length > 1 ? 's' : ''}`;
+
     if (records.length === 0) {
       container.innerHTML = `<div style="padding:60px 24px;text-align:center"><div style="font-size:48px;margin-bottom:16px">📂</div><div style="font-size:16px;font-weight:600;color:var(--dark);margin-bottom:8px">Aucun rapport enregistré</div><div style="font-size:13px;color:var(--muted)">Vos rapports générés apparaîtront ici.</div></div>`;
       return;
@@ -1497,10 +2039,19 @@ async function renderArchive() {
     container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--rust)">Erreur : ${e.message}</div>`;
   }
 }
- 
+
 async function openViewer(id) {
   try {
-    const rec = await dbGet('records', id); if (!rec) { alert('Rapport introuvable.'); return; }
+    let rec = await dbGet('records', id).catch(() => null);
+    if (!rec && getCurrentUser()) {
+      // Charger depuis Supabase
+      const valid = await refreshSession();
+      if (valid) {
+        const sbRecs = await sbFetch(`/rest/v1/edl_records?id=eq.${id}&select=id,data`);
+        if (sbRecs && sbRecs[0]) rec = { ...sbRecs[0].data, id: sbRecs[0].id };
+      }
+    }
+    if (!rec) { alert('Rapport introuvable.'); return; }
     const rooms = await Promise.all((rec.rooms||[]).map(async room => ({ ...room, photos: await Promise.all((room.photos||[]).map(async photo => { if (photo.src && photo.src.startsWith('__blob__')) { const blob = await dbGet('blobs', photo.src.replace('__blob__','')); return { ...photo, src: blob ? blob.data : '' }; } return photo; })) })));
     const signatures = {};
     if (rec.signatures) { await Promise.all(Object.entries(rec.signatures).map(async ([k, v]) => { if (v && v.startsWith('__blob__')) { const blob = await dbGet('blobs', v.replace('__blob__','')); signatures[k] = blob ? blob.data : ''; } else { signatures[k] = v; } })); }
@@ -1515,20 +2066,26 @@ async function openViewer(id) {
     goTo('viewer');
   } catch(e) { console.error(e); alert('Erreur : ' + e.message); }
 }
- 
+
 function viewerPrint() { const frame = document.getElementById('viewer-frame'); if (frame.contentWindow) frame.contentWindow.print(); }
- 
+
 // ─── EMAIL SHARE ─────────────────────────────────
- 
- 
- 
- 
+
+
+
+
 async function shareReport(id) {
   try {
-    const rec = await dbGet('records', id);
+    let rec = await dbGet('records', id).catch(() => null);
+    if (!rec && getCurrentUser()) {
+      const valid = await refreshSession();
+      if (valid) {
+        const sbRecs = await sbFetch('/rest/v1/edl_records?id=eq.' + id + '&select=id,data');
+        if (sbRecs && sbRecs[0]) rec = { ...sbRecs[0].data, id: sbRecs[0].id };
+      }
+    }
     if (!rec) { alert('Rapport introuvable.'); return; }
- 
-    // Résoudre tous les blobs
+
     const rooms = await Promise.all((rec.rooms||[]).map(async room => ({
       ...room,
       photos: await Promise.all((room.photos||[]).map(async photo => {
@@ -1560,57 +2117,164 @@ async function shareReport(id) {
     }
     const snap = { ...rec, rooms, cles, signatures, compteurs: rec.compteurs||[] };
     const html = buildReportHTML(snap);
- 
     const adresse = (rec.adresse||'rapport').replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
     const dateStr = rec.date ? rec.date.replace(/-/g,'') : 'sans-date';
     const typeStr = rec.type === 'entree' ? 'entree' : 'sortie';
-    const filename = 'EDL_' + typeStr + '_' + adresse + '_' + dateStr + '.html';
- 
-    // HTML avec impression automatique au chargement
-    const htmlWithPrint = html.replace('</body>', '<scr' + 'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print();},600);});</' + 'script></body>');
- 
-    const blob = new Blob([htmlWithPrint], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
- 
+    const filename = 'EDL_' + typeStr + '_' + adresse + '_' + dateStr;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
- 
+
     if (isIOS) {
-      // Sur iOS : ouvrir dans un nouvel onglet — l'utilisateur utilise le bouton partage de Safari
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
-    } else if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([htmlWithPrint], filename, { type: 'text/html' })] })) {
-      const file = new File([htmlWithPrint], filename, { type: 'text/html' });
-      try {
-        await navigator.share({ title: 'EDL — ' + (rec.adresse||''), files: [file] });
-      } catch(shareErr) {
-        if (shareErr.name !== 'AbortError') {
-          const a = document.createElement('a');
-          a.href = url; a.download = filename;
-          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      return;
+    }
+
+    // Desktop : générer PDF avec jsPDF + html2canvas
+    const genOverlay = document.getElementById('pdf-generating');
+    genOverlay.classList.add('show');
+    try {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;height:1123px;border:none;visibility:hidden;';
+      document.body.appendChild(iframe);
+      await new Promise(resolve => { iframe.onload = resolve; iframe.srcdoc = html; });
+      await new Promise(r => setTimeout(r, 1500));
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+      // Remplacer chaque .photo-img par un canvas correctement croppé
+      const photoImgs = iframeDoc.querySelectorAll('.photo-img');
+      const TARGET_W = 330;
+      const TARGET_H = Math.round(TARGET_W * 3 / 4);
+
+      for (const img of photoImgs) {
+        await new Promise(resolve => {
+          if (img.complete && img.naturalWidth > 0) resolve();
+          else { img.onload = resolve; img.onerror = resolve; }
+        });
+        const iw = img.naturalWidth || TARGET_W;
+        const ih = img.naturalHeight || TARGET_H;
+        // Crop centré 4/3
+        let cropW, cropH;
+        if (iw / ih > 4 / 3) { cropH = ih; cropW = Math.round(ih * 4 / 3); }
+        else { cropW = iw; cropH = Math.round(iw * 3 / 4); }
+        const cropX = Math.round((iw - cropW) / 2);
+        const cropY = Math.round((ih - cropH) / 2);
+        const DPR = 2;
+        const cvs = document.createElement('canvas');
+        cvs.width = TARGET_W * DPR;
+        cvs.height = TARGET_H * DPR;
+        cvs.style.cssText = 'width:100%;height:auto;display:block;max-width:100%;';
+        const ctx = cvs.getContext('2d');
+        ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, TARGET_W * DPR, TARGET_H * DPR);
+        img.parentNode.replaceChild(cvs, img);
+      }
+
+      // Style mise en page
+      const fixStyle = iframeDoc.createElement('style');
+      fixStyle.textContent = [
+        'body{width:794px!important;margin:0!important;}',
+        '.photos-wrap{display:grid!important;grid-template-columns:1fr 1fr!important;gap:16px!important;padding:16px 20px!important;}',
+        '.photo-block{padding:0!important;border-radius:8px!important;overflow:hidden!important;}',
+        '.photo-meta{padding:8px 10px!important;}',
+        '.photo-img{display:none!important;}'
+      ].join('');
+      iframeDoc.head.appendChild(fixStyle);
+
+      // Chaque canvas prend 100% de la largeur du photo-block, pas de padding
+      iframeDoc.querySelectorAll('.photo-block').forEach(el => {
+        el.style.padding = '0';
+        el.style.overflow = 'hidden';
+      });
+      await new Promise(r => setTimeout(r, 300));
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const sections = iframeDoc.querySelectorAll('.cover, .page-break');
+      let firstPage = true;
+
+      for (const section of sections) {
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: 794,
+          windowWidth: 794
+        });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pxToMm = 210 / 794;
+        const imgHeightMm = (canvas.height / 2) * pxToMm;
+
+        if (!firstPage) pdf.addPage();
+        firstPage = false;
+
+        if (imgHeightMm <= pageHeight) {
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeightMm);
+        } else {
+          const pageHeightPx = (pageHeight / pxToMm);
+          let yPx = 0;
+          let pageNum = 0;
+          while (yPx < canvas.height / 2) {
+            if (pageNum > 0) pdf.addPage();
+            const sliceH = Math.min(pageHeightPx, canvas.height / 2 - yPx);
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = sliceH * 2;
+            sliceCanvas.getContext('2d').drawImage(canvas, 0, yPx * 2, canvas.width, sliceH * 2, 0, 0, canvas.width, sliceH * 2);
+            pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWidth, sliceH * pxToMm);
+            yPx += sliceH;
+            pageNum++;
+          }
         }
       }
-    } else {
-      const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+      document.body.removeChild(iframe);
+      pdf.save(filename + '.pdf');
+    } finally {
+      genOverlay.classList.remove('show');
     }
- 
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
   } catch(e) {
+    document.getElementById('pdf-generating').classList.remove('show');
     if (e.name !== 'AbortError') { console.error(e); alert('Erreur : ' + e.message); }
   }
 }
- 
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
 function deleteArchiveEntry(id) {
   showConfirm(
     `<strong style="font-size:15px">Supprimer ce rapport ?</strong><br><br>Cette action supprimera définitivement l'état des lieux ainsi que toutes les photos, commentaires et signatures associés.<br><br><span style="color:var(--rust);font-weight:600">⚠ Cette action est irréversible.</span>`,
     async () => {
-      const allKeys = await dbGetAllKeys('blobs');
+      // Supprimer local
+      const allKeys = await dbGetAllKeys('blobs').catch(() => []);
       await Promise.all(allKeys.filter(k => String(k).startsWith(id+'_')).map(k => dbDel('blobs', k)));
-      await dbDel('records', id); renderArchive();
+      await dbDel('records', id).catch(() => {});
+      // Supprimer Supabase
+      if (getCurrentUser()) {
+        const valid = await refreshSession();
+        if (valid) sbFetch(`/rest/v1/edl_records?id=eq.${id}`, { method: 'DELETE' }).catch(e => console.warn(e));
+      }
+      renderArchive();
     }
   );
 }
- 
+
 // ─── MODALS ──────────────────────────────────────
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1625,13 +2289,34 @@ function showConfirm(message, onConfirm) {
   newOk.addEventListener('click', () => { overlay.classList.remove('open'); onConfirm(); });
   newCancel.addEventListener('click', () => overlay.classList.remove('open'));
 }
- 
+
 // ─── UTILS ───────────────────────────────────────
 function uid() { return Math.random().toString(36).slice(2,9); }
 function locNom(l)   { return typeof l === 'object' ? (l.nom   || '') : (l || ''); }
 function locEmail(l) { return typeof l === 'object' ? (l.email || '') : ''; }
- 
+
 // ─── INIT ─────────────────────────────────────────
+// Gérer retour Stripe
+(function() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('checkout') === 'success') {
+    history.replaceState({}, '', location.pathname);
+    alert('✓ Paiement réussi ! Votre compte est mis à jour en version Particulier.');
+  } else if (params.get('checkout') === 'cancel') {
+    history.replaceState({}, '', location.pathname);
+  }
+})();
+
+// Vérifier session au démarrage
+(async function() {
+  const valid = await refreshSession();
+  if (valid && getCurrentUser()) {
+    goTo('home');
+  } else {
+    goTo('login');
+  }
+})();
+
 document.getElementById('input-date').valueAsDate = new Date();
 document.getElementById('btn-open-gallery').addEventListener('click', function() {
   closeModal('photo-source-modal'); document.getElementById('file-input-gallery').click();
@@ -1641,7 +2326,7 @@ document.getElementById('btn-open-camera').addEventListener('click', function() 
 });
 document.getElementById('file-input-gallery').addEventListener('change', handleFileSelect);
 document.getElementById('file-input-camera').addEventListener('change', handleFileSelect);
- 
+
 // ── Délégation rooms-list ────────────────────────────────────────
 document.getElementById('rooms-list').addEventListener('click', function(e) {
   var delBtn = e.target.closest('[data-delete-id]');
@@ -1649,7 +2334,7 @@ document.getElementById('rooms-list').addEventListener('click', function(e) {
   var card = e.target.closest('[data-room-id]');
   if (card) { openRoom(card.getAttribute('data-room-id')); }
 });
- 
+
 // ── Délégation photos-grid ───────────────────────────────────────
 document.getElementById('photos-grid').addEventListener('click', function(e) {
   var delBtn = e.target.closest('[data-delete-photo]');
@@ -1659,7 +2344,7 @@ document.getElementById('photos-grid').addEventListener('click', function(e) {
   var wrap = e.target.closest('[data-photo-id]');
   if (wrap) { openPhotoModal(wrap.getAttribute('data-photo-id')); }
 });
- 
+
 document.getElementById('archive-list').addEventListener('click', function(e) {
   var shareBtn = e.target.closest('[data-share-id]');
   if (shareBtn) { e.stopPropagation(); shareReport(shareBtn.getAttribute('data-share-id')); return; }
@@ -1668,7 +2353,7 @@ document.getElementById('archive-list').addEventListener('click', function(e) {
   var card = e.target.closest('[data-archive-id]');
   if (card) openViewer(card.getAttribute('data-archive-id'));
 });
- 
+
 document.getElementById('cle-file-gallery').addEventListener('change', handleCleFileSelect);
 document.getElementById('cle-file-camera').addEventListener('change', handleCleFileSelect);
 document.getElementById('cle-btn-open-gallery').addEventListener('click', function() {
@@ -1679,7 +2364,7 @@ document.getElementById('cle-btn-open-camera').addEventListener('click', functio
 });
 document.getElementById('cles-list').addEventListener('click', function(e) {
   var d = e.target.closest('[data-delete-cle]');
-  if (d) { e.stopPropagation(); showConfirm('Supprimer cette remise de clés ?', function() { state.cles=(state.cles||[]).filter(function(c){return c.id!==d.getAttribute('data-delete-cle');}); renderCles(); }); return; }
+  if (d) { e.stopPropagation(); showConfirm('Supprimer cette remise de clés ?', function() { state.cles=(state.cles||[]).filter(function(c){return c.id!==d.getAttribute('data-delete-cle');}); renderCles(); }); return; }
   var card = e.target.closest('[data-cle-id]');
   if (card) openCleDetail(card.getAttribute('data-cle-id'));
 });
@@ -1691,6 +2376,10 @@ document.getElementById('cle-photos-grid').addEventListener('click', function(e)
   var wrap = e.target.closest('[data-cle-photo-id]');
   if (wrap) { openClePhotoModal(wrap.getAttribute('data-cle-photo-id')); }
 });
+
+// Login : touche Entrée
+document.getElementById('auth-email').addEventListener('keydown', function(e) { if (e.key === 'Enter') authLogin(); });
+document.getElementById('auth-password').addEventListener('keydown', function(e) { if (e.key === 'Enter') authLogin(); });
 </script>
 </body>
 </html>
