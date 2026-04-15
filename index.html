@@ -1957,7 +1957,13 @@ async function confirmCancelSubscription() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erreur');
     closeModal('cancel-subscription-modal');
-    alert('✓ Votre abonnement sera résilié à la fin du mois. Votre accès illimité reste actif jusqu’à cette date.');
+    // Afficher la date de fin si disponible
+    let msg = '✓ Votre abonnement a été résilié.\n\nVotre accès illimité reste actif jusqu’à la fin du mois en cours.';
+    if (data.cancel_at) {
+      const endDate = new Date(data.cancel_at * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      msg = '✓ Votre abonnement a été résilié.\n\nVotre accès illimité reste actif jusqu’au ' + endDate + '.';
+    }
+    alert(msg);
     renderProfil();
   } catch(e) {
     errEl.textContent = 'Erreur : ' + e.message;
