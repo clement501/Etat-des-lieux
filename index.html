@@ -798,16 +798,17 @@ input:focus,textarea:focus{border-color:var(--rust);}
       { label: 'Unlimited', count: unlimited, color: 'var(--sage)', pct: total > 0 ? Math.round(unlimited/total*100) : 0 },
     ];
 
+    // Stocker les listes dans variable globale
+    window._adminLists = {};
+    cards.forEach(c => { if (c.users !== null) window._adminLists[c.label] = c.users; });
+
     let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">';
-    cards.forEach(c => {
+    cards.forEach((c, idx) => {
       const clickable = c.users !== null;
-      const onclick = clickable ? 'onclick="showAdminList(\'' + c.label + '\', adminProfiles[\''+c.label+'\'])"' : '';
-      html += '<div ' + onclick + ' style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
+      html += '<div data-admin-card="' + idx + '" style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
             + '<div style="font-size:28px;font-weight:700;color:' + c.color + ';">' + c.value + '</div>'
             + '<div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;">' + c.label + '</div>'
             + '</div>';
-      if (clickable) window['adminProfiles'] = window['adminProfiles'] || {};
-      if (clickable) window['adminProfiles'][c.label] = c.users;
     });
     html += '</div>';
 
@@ -1069,7 +1070,17 @@ function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
   if (screenId === 'profil') renderProfil();
-  if (screenId === 'admin') renderAdmin();
+  if (screenId === 'admin') {
+    renderAdmin();
+    document.getElementById('admin-content').addEventListener('click', function(e) {
+      const card = e.target.closest('[data-admin-card]');
+      if (!card) return;
+      const idx = parseInt(card.getAttribute('data-admin-card'));
+      const label = card.querySelector('div:last-child').textContent;
+      const users = window._adminLists && window._adminLists[label];
+      if (users !== undefined) showAdminList(label, users);
+    });
+  }
 }
 
 async function newEdl() {
