@@ -2207,10 +2207,14 @@ async function shareFromViewer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html, filename })
       });
-      const data = await res.json();
-      if (!res.ok || !data.pdf) throw new Error(data.error || 'Erreur génération PDF');
-      // Convertir base64 en blob PDF via fetch data URL
-      const pdfBlob = await fetch('data:application/pdf;base64,' + data.pdf).then(r => r.blob());
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || (!contentType.includes('pdf') && !contentType.includes('octet'))) {
+        const errText = await res.text().catch(() => 'Erreur inconnue');
+        let errMsg = 'Erreur génération PDF';
+        try { errMsg = JSON.parse(errText).error || errMsg; } catch(e) {}
+        throw new Error(errMsg);
+      }
+      const pdfBlob = await res.blob();
       const pdfFile = new File([pdfBlob], filename + '.pdf', { type: 'application/pdf' });
       genOverlay.classList.remove('show');
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
