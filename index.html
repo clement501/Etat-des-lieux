@@ -2188,32 +2188,44 @@ async function openViewer(id) {
 
 function viewerPrint() { const frame = document.getElementById('viewer-frame'); if (frame.contentWindow) frame.contentWindow.print(); }
 
-function shareFromViewer() {
+async function shareFromViewer() {
   const frame = document.getElementById('viewer-frame');
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
   if (isIOS || isPWA) {
-    // Sur iOS : utiliser directement le HTML déjà dans l'iframe
     const html = frame._htmlContent;
     if (!html) return;
     const recordId = frame._recordId || 'rapport';
     const filename = 'EDL_' + recordId;
-    const file = new File([html], filename + '.html', { type: 'text/html' });
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: 'État des lieux' }).catch(e => {
-        if (e.name !== 'AbortError') {
-          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          window.open(url, '_blank');
-          setTimeout(() => URL.revokeObjectURL(url), 30000);
-        }
+    const genOverlay = document.getElementById('pdf-generating');
+    genOverlay.classList.add('show');
+    try {
+      const res = await fetch('https://nxjwocmidveiqspzgkmg.supabase.co/functions/v1/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html, filename })
       });
-    } else {
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      const data = await res.json();
+      if (!res.ok || !data.pdf) throw new Error(data.error || 'Erreur génération PDF');
+      const binary = atob(data.pdf);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+      const pdfFile = new File([pdfBlob], filename + '.pdf', { type: 'application/pdf' });
+      genOverlay.classList.remove('show');
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({ files: [pdfFile], title: 'État des lieux' });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename + '.pdf';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
+    } catch(err) {
+      genOverlay.classList.remove('show');
+      if (err.name !== 'AbortError') alert('Erreur : ' + err.message);
     }
     return;
   }
