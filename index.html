@@ -2209,10 +2209,8 @@ async function shareFromViewer() {
       });
       const data = await res.json();
       if (!res.ok || !data.pdf) throw new Error(data.error || 'Erreur génération PDF');
-      const binary = atob(data.pdf);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+      // Convertir base64 en blob PDF via fetch data URL
+      const pdfBlob = await fetch('data:application/pdf;base64,' + data.pdf).then(r => r.blob());
       const pdfFile = new File([pdfBlob], filename + '.pdf', { type: 'application/pdf' });
       genOverlay.classList.remove('show');
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
