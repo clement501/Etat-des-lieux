@@ -798,14 +798,15 @@ input:focus,textarea:focus{border-color:var(--rust);}
       { label: 'Unlimited', count: unlimited, color: 'var(--sage)', pct: total > 0 ? Math.round(unlimited/total*100) : 0 },
     ];
 
-    // Stocker les listes dans variable globale
+    // Stocker dans variable globale
     window._adminLists = {};
-    cards.forEach(c => { if (c.users !== null) window._adminLists[c.label] = c.users; });
+    cards.forEach(function(c, i) { window._adminLists[i] = { label: c.label, users: c.users }; });
 
     let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">';
-    cards.forEach((c, idx) => {
+    cards.forEach(function(c, i) {
       const clickable = c.users !== null;
-      html += '<div data-admin-card="' + idx + '" style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
+      const onclickAttr = clickable ? ' onclick="adminCardClick(' + i + ')"' : '';
+      html += '<div' + onclickAttr + ' style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
             + '<div style="font-size:28px;font-weight:700;color:' + c.color + ';">' + c.value + '</div>'
             + '<div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;">' + c.label + '</div>'
             + '</div>';
@@ -852,17 +853,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 
     container.innerHTML = html;
 
-    // Ajouter les listeners sur les cartes après injection du HTML
-    container.querySelectorAll('[data-admin-card]').forEach(function(card) {
-      const cardIdx = parseInt(card.getAttribute('data-admin-card'));
-      const cardData = cards[cardIdx];
-      if (cardData && cardData.users !== null) {
-        card.style.cursor = 'pointer';
-        card.addEventListener('click', function() {
-          showAdminList(cardData.label, cardData.users);
-        });
-      }
-    });
+
   } catch(e) {
     container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rust)">Erreur : ' + e.message + '</div>';
   }
