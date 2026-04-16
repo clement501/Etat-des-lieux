@@ -1507,7 +1507,7 @@ function buildReportHTML(s) {
     .room-header-name { font-size:15px; font-weight:700; }
     .room-header-count { font-size:10px; opacity:.85; }
     .photos-wrap { padding:16px 20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .photo-block { border:1px solid #e5ddd0; border-radius:8px; overflow:hidden; }
+    .photo-block { border:1px solid #e5ddd0; border-radius:8px; overflow:hidden; page-break-inside:avoid; break-inside:avoid; }
     .photo-img { width:100%; display:block; aspect-ratio:4/3; object-fit:cover; }
     .photo-meta { padding:10px 12px; background:#faf8f5; }
     .photo-num { font-size:9px; font-weight:700; color:#8c7b6b; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
@@ -2348,7 +2348,7 @@ async function shareReport(id) {
         'body{width:794px!important;margin:0!important;}',
         '.cover{min-height:0!important;height:auto!important;}',
         '.photos-wrap{display:grid!important;grid-template-columns:1fr 1fr!important;gap:16px!important;padding:16px 20px!important;}',
-        '.photo-block{padding:0!important;border-radius:8px!important;overflow:hidden!important;}',
+        '.photo-block{padding:0!important;border-radius:8px!important;overflow:hidden!important;page-break-inside:avoid!important;break-inside:avoid!important;}',
         '.photo-meta{padding:8px 10px!important;}',
         '.photo-img{display:none!important;}'
       ].join('');
