@@ -2103,26 +2103,20 @@ async function renderArchive() {
     const isOnline = location.protocol === 'https:';
 
     if (user && isOnline) {
-      // En ligne et connecté : charger depuis Supabase ET IndexedDB et fusionner
+      // En ligne et connecté : Supabase est la source de vérité
       const valid = await refreshSession();
-      const localRecords = await dbGetAll('records').catch(() => []);
       if (valid) {
         try {
           const sbRecords = await sbFetch('/rest/v1/edl_records?select=id,data&order=data->>savedAt.desc');
-          if (Array.isArray(sbRecords) && sbRecords.length > 0) {
-            const sbMapped = sbRecords.map(r => ({ ...r.data, id: r.id }));
-            // Fusionner : Supabase en priorité, compléter avec IndexedDB
-            const sbIds = new Set(sbMapped.map(r => r.id));
-            const localOnly = localRecords.filter(r => !sbIds.has(r.id));
-            records = [...sbMapped, ...localOnly];
-          } else {
-            records = localRecords;
+          if (Array.isArray(sbRecords)) {
+            records = sbRecords.map(r => ({ ...r.data, id: r.id }));
           }
         } catch(e) {
-          records = localRecords;
+          // Fallback sur IndexedDB si Supabase échoue
+          records = await dbGetAll('records').catch(() => []);
         }
       } else {
-        records = localRecords;
+        records = await dbGetAll('records').catch(() => []);
       }
     } else {
       // En local (file://) ou pas connecté : charger depuis IndexedDB
