@@ -2192,8 +2192,9 @@ async function shareFromViewer() {
   const frame = document.getElementById('viewer-frame');
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  if (isIOS || isPWA) {
+  if (isIOS || isPWA || isMobile) {
     const html = frame._htmlContent;
     if (!html) return;
     const recordId = frame._recordId || 'rapport';
