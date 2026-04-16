@@ -2209,7 +2209,7 @@ async function shareFromViewer() {
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q',
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q'
         },
-        body: JSON.stringify({ html: await compressHtmlImages(html), filename })
+        body: JSON.stringify({ html, filename })
       });
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok || (!contentType.includes('pdf') && !contentType.includes('octet'))) {
@@ -2454,31 +2454,6 @@ async function shareReport(id) {
 }
 
 
-async function compressHtmlImages(html) {
-  // Trouver toutes les images base64 et les compresser
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const imgs = doc.querySelectorAll('img[src^="data:image"]');
-  await Promise.all(Array.from(imgs).map(img => new Promise(resolve => {
-    const image = new Image();
-    image.onload = () => {
-      const maxW = 400, maxH = 300;
-      let w = image.width, h = image.height;
-      if (w > maxW || h > maxH) {
-        const ratio = Math.min(maxW/w, maxH/h);
-        w = Math.round(w * ratio); h = Math.round(h * ratio);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(image, 0, 0, w, h);
-      img.src = canvas.toDataURL('image/jpeg', 0.4);
-      resolve();
-    };
-    image.onerror = resolve;
-    image.src = img.src;
-  })));
-  return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
-}
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
