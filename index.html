@@ -2213,14 +2213,12 @@ async function shareFromViewer() {
       });
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok || (!contentType.includes('pdf') && !contentType.includes('octet'))) {
-        const errText = await res.text().catch(() => 'Erreur inconnue');
-        let errMsg = 'Statut ' + res.status + ' - ' + errText.slice(0, 200);
-        try { errMsg = JSON.parse(errText).error || errMsg; } catch(e) {}
-        // Message spécifique si dépassement de taille
-        if (errText.includes('2Mb') || errText.includes('2mb') || errText.includes('more than') || errText.includes('source')) {
+        const errText = await res.text().catch(() => '');
+        const isSizeError = errText.includes('2Mb') || errText.includes('more than') || errText.includes('2mb');
+        if (isSizeError) {
           throw new Error('Les photos sont trop volumineuses pour iPhone.\n\nT\u00e9l\u00e9chargez le PDF depuis la version web sur ordinateur.');
         }
-        throw new Error('Statut ' + res.status + ' : ' + errText.slice(0, 300));
+        throw new Error('Erreur g\u00e9n\u00e9ration PDF (' + res.status + ')');
       }
       const pdfBlob = await res.blob();
       const pdfFile = new File([pdfBlob], filename + '.pdf', { type: 'application/pdf' });
