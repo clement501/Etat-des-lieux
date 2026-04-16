@@ -2373,38 +2373,72 @@ async function shareReport(id) {
       const sections = iframeDoc.querySelectorAll('.cover, .page-break');
       let firstPage = true;
 
-      for (const section of sections) {
-        const canvas = await html2canvas(section, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          width: 794,
-          windowWidth: 794
-        });
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        const pxToMm = 210 / 794;
-        const imgHeightMm = (canvas.height / 2) * pxToMm;
+      const pxToMm = 210 / 794;
+      const pageHeightPx = pageHeight / pxToMm;
 
+      for (const section of sections) {
         if (!firstPage) pdf.addPage();
         firstPage = false;
 
-        if (imgHeightMm <= pageHeight) {
-          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeightMm);
+        // Capturer l'en-tête de section (room-header) séparément
+        const header = section.querySelector('.room-header, .cover-band');
+        const photosWrap = section.querySelector('.photos-wrap');
+        const otherContent = section.querySelector('.cover-body, .sig-section');
+
+        if (photosWrap && header) {
+          // Capturer l'en-tête
+          const headerCanvas = await html2canvas(header, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', width:794, windowWidth:794 });
+          const headerH = (headerCanvas.height / 2) * pxToMm;
+          let curY = 0;
+          pdf.addImage(headerCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, curY, pageWidth, headerH);
+          curY += headerH;
+
+          // Capturer chaque photo-block et éviter les coupures
+          const photoBlocks = photosWrap.querySelectorAll('.photo-block');
+          const rows = [];
+          for (let i = 0; i < photoBlocks.length; i += 2) {
+            rows.push([photoBlocks[i], photoBlocks[i+1]]);
+          }
+
+          for (const row of rows) {
+            // Créer un conteneur temporaire pour la rangée
+            const rowDiv = iframeDoc.createElement('div');
+            rowDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 20px;';
+            row.forEach(b => { if (b) rowDiv.appendChild(b.cloneNode(true)); });
+            photosWrap.parentNode.appendChild(rowDiv);
+
+            const rowCanvas = await html2canvas(rowDiv, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', width:794, windowWidth:794 });
+            photosWrap.parentNode.removeChild(rowDiv);
+
+            const rowH = (rowCanvas.height / 2) * pxToMm;
+
+            // Si la rangée ne tient pas sur la page courante, nouvelle page
+            if (curY + rowH > pageHeight - 5) {
+              pdf.addPage();
+              curY = 0;
+            }
+            pdf.addImage(rowCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, curY, pageWidth, rowH);
+            curY += rowH + 2;
+          }
         } else {
-          const pageHeightPx = (pageHeight / pxToMm);
-          let yPx = 0;
-          let pageNum = 0;
-          while (yPx < canvas.height / 2) {
-            if (pageNum > 0) pdf.addPage();
-            const sliceH = Math.min(pageHeightPx, canvas.height / 2 - yPx);
-            const sliceCanvas = document.createElement('canvas');
-            sliceCanvas.width = canvas.width;
-            sliceCanvas.height = sliceH * 2;
-            sliceCanvas.getContext('2d').drawImage(canvas, 0, yPx * 2, canvas.width, sliceH * 2, 0, 0, canvas.width, sliceH * 2);
-            pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWidth, sliceH * pxToMm);
-            yPx += sliceH;
-            pageNum++;
+          // Section sans grille de photos (cover, signatures) : capture normale
+          const canvas = await html2canvas(section, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', width:794, windowWidth:794 });
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          const imgHeightMm = (canvas.height / 2) * pxToMm;
+
+          if (imgHeightMm <= pageHeight) {
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeightMm);
+          } else {
+            let yPx = 0; let pageNum = 0;
+            while (yPx < canvas.height / 2) {
+              if (pageNum > 0) pdf.addPage();
+              const sliceH = Math.min(pageHeightPx, canvas.height / 2 - yPx);
+              const sliceCanvas = document.createElement('canvas');
+              sliceCanvas.width = canvas.width; sliceCanvas.height = sliceH * 2;
+              sliceCanvas.getContext('2d').drawImage(canvas, 0, yPx * 2, canvas.width, sliceH * 2, 0, 0, canvas.width, sliceH * 2);
+              pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWidth, sliceH * pxToMm);
+              yPx += sliceH; pageNum++;
+            }
           }
         }
       }
