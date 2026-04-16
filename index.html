@@ -734,7 +734,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <div><div class="top-bar-title">Dashboard Admin</div></div>
     <div></div>
   </div>
-  <div class="rooms-body" style="padding:16px;">
+  <div class="rooms-body" style="padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
     <div id="admin-content">
       <div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>
     </div>
@@ -743,6 +743,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
 <script>async function renderAdmin() {
   const container = document.getElementById('admin-content');
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>';
+  document.getElementById('pdf-generating').classList.remove('show');
   try {
     const valid = await refreshSession();
     if (!valid) { goTo('login'); return; }
