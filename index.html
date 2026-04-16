@@ -853,12 +853,15 @@ input:focus,textarea:focus{border-color:var(--rust);}
     container.innerHTML = html;
 
     // Ajouter les listeners sur les cartes après injection du HTML
-    container.querySelectorAll('[data-admin-card]').forEach(card => {
-      card.addEventListener('click', function() {
-        const label = card.querySelector('div:last-child').textContent;
-        const users = window._adminLists && window._adminLists[label];
-        if (users !== undefined) showAdminList(label, users);
-      });
+    container.querySelectorAll('[data-admin-card]').forEach(function(card) {
+      const cardIdx = parseInt(card.getAttribute('data-admin-card'));
+      const cardData = cards[cardIdx];
+      if (cardData && cardData.users !== null) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() {
+          showAdminList(cardData.label, cardData.users);
+        });
+      }
     });
   } catch(e) {
     container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rust)">Erreur : ' + e.message + '</div>';
