@@ -2208,6 +2208,13 @@ async function shareFromViewer() {
 
 
 async function shareReport(id) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isIOS || isPWA || isMobile) {
+    alert('Le t\u00e9l\u00e9chargement PDF n\u2019est pas disponible sur iPhone.\n\nConnectez-vous sur la version web depuis un ordinateur pour t\u00e9l\u00e9charger votre rapport en PDF.');
+    return;
+  }
   try {
     let rec = await dbGet('records', id).catch(() => null);
     if (!rec && getCurrentUser()) {
