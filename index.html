@@ -2248,21 +2248,28 @@ async function shareReport(id) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-    if (isIOS) {
-      // Sur iOS : ouvrir dans un nouvel onglet Safari — partage natif ou "Enregistrer en PDF"
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-      return;
-    }
-
-    if (isPWA) {
-      // Sur PWA non-iOS : ouvrir dans nouvel onglet
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    if (isIOS || isPWA) {
+      // Sur iOS/PWA : utiliser Web Share API pour partager le fichier HTML
+      const file = new File([html], filename + '.html', { type: 'text/html' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'État des lieux' });
+        } catch(shareErr) {
+          if (shareErr.name !== 'AbortError') {
+            // Fallback : ouvrir dans un nouvel onglet
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+          }
+        }
+      } else {
+        // Fallback si Web Share non disponible
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
       return;
     }
 
