@@ -2190,6 +2190,34 @@ function viewerPrint() { const frame = document.getElementById('viewer-frame'); 
 
 function shareFromViewer() {
   const frame = document.getElementById('viewer-frame');
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  if (isIOS || isPWA) {
+    // Sur iOS : utiliser directement le HTML déjà dans l'iframe
+    const html = frame._htmlContent;
+    if (!html) return;
+    const recordId = frame._recordId || 'rapport';
+    const filename = 'EDL_' + recordId;
+    const file = new File([html], filename + '.html', { type: 'text/html' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'État des lieux' }).catch(e => {
+        if (e.name !== 'AbortError') {
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 30000);
+        }
+      });
+    } else {
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+    return;
+  }
+
   if (frame._recordId) shareReport(frame._recordId);
 }
 
