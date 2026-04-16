@@ -1440,16 +1440,38 @@ async function generatePDF() {
   try {
     const id = await saveToArchive();
     gen.classList.remove('show');
-    if (id) {
-      await renderArchive();
-      await openViewer(id);
-    }
+    if (id) { await renderArchive(); await openViewer(id); }
   } catch(e) {
     gen.classList.remove('show');
     console.error(e); alert('Erreur lors de la génération : ' + e.message);
   }
 }
 
+
+function buildRoomSection(room, typeColor) {
+  const etatBg = { 'Bonétat':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2' };
+  const etatCl = { 'Bonétat':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b' };
+  const chunks = [];
+  if (room.photos.length === 0) chunks.push([]);
+  else for (let i = 0; i < room.photos.length; i += 4) chunks.push(room.photos.slice(i, i+4));
+  return chunks.map((chunk, ci) => {
+    const photosHTML = chunk.length === 0
+      ? '<div style="padding:16px 20px;color:#8c7b6b;font-style:italic;font-size:11px;">Aucune photo</div>'
+      : '<div class="photos-wrap">' + chunk.map((photo, pi) => {
+          const etatDiv = photo.etat
+            ? '<div class="photo-etat" style="background:' + (etatBg[photo.etat]||'#f5f0e8') + ';color:' + (etatCl[photo.etat]||'#333') + '">' + photo.etat + '</div>'
+            : '';
+          const commentsHTML = (photo.comments||[]).map(c => '<div class="photo-comment">' + c.text + '</div>').join('');
+          return '<div class="photo-block"><img class="photo-img" src="' + photo.src + '" alt="Photo ' + (ci*4+pi+1) + '"/>'
+               + '<div class="photo-meta"><div class="photo-num">Photo ' + (ci*4+pi+1) + '</div>' + etatDiv + commentsHTML + '</div></div>';
+        }).join('') + '</div>';
+    return '<div class="page-break">'
+      + '<div class="room-header" style="background:' + typeColor + '">'
+      + '<div class="room-header-name">' + room.icon + ' ' + room.name + (ci > 0 ? ' (suite)' : '') + '</div>'
+      + '<div class="room-header-count">' + room.photos.length + ' photo' + (room.photos.length!==1?'s':'') + '</div>'
+      + '</div>' + photosHTML + '</div>';
+  }).join('');
+}
 function buildReportHTML(s) {
   const typeColor = s.type === 'entree' ? '#7a9e87' : '#c4622d';
   const typeLabel = s.type === 'entree' ? 'ÉTAT DES LIEUX D\'ENTRÉE' : 'ÉTAT DES LIEUX DE SORTIE';
@@ -1551,23 +1573,7 @@ function buildReportHTML(s) {
       ${(s.rooms||[]).map((r,i) => `<div class="toc-row"><span>${i+1}. ${r.icon} ${r.name}</span><span style="color:#8c7b6b">${r.photos.length} photo${r.photos.length!==1?'s':''}</span></div>`).join('')}
     </div>
   </div>
-  ${(s.rooms||[]).map((room, ri) => `
-  <div class="page-break">
-    <div class="room-header" style="background:${typeColor}">
-      <div class="room-header-name">${room.icon} ${room.name}</div>
-      <div class="room-header-count">${room.photos.length} photo${room.photos.length!==1?'s':''}</div>
-    </div>
-    ${room.photos.length === 0 ? '<div style="padding:16px 20px;color:#8c7b6b;font-style:italic;font-size:11px;">Aucune photo</div>' :
-    `<div class="photos-wrap">${room.photos.map((photo, pi) => `
-      <div class="photo-block">
-        <img class="photo-img" src="${photo.src}" alt="Photo ${pi+1}"/>
-        <div class="photo-meta">
-          <div class="photo-num">Photo ${pi+1}</div>
-          ${photo.etat ? `<div class="photo-etat" style="background:${({'Bon état':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2'}[photo.etat]||'#f5f0e8')};color:${({'Bon état':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b'}[photo.etat]||'#333')}">${photo.etat}</div>` : ''}
-          ${photo.comments.map(c => `<div class="photo-comment">${c.text}</div>`).join('')}
-        </div>
-      </div>`).join('')}</div>`}
-  </div>`).join('')}
+  ${(s.rooms||[]).map(room => buildRoomSection(room, typeColor)).join('')}
   ${clesHTML}
 
   <div class="page-break sig-section">
@@ -2098,23 +2104,14 @@ async function renderArchive() {
     const isOnline = location.protocol === 'https:';
 
     if (user && isOnline) {
-      // En ligne et connecté : Supabase est la source de vérité
       const valid = await refreshSession();
       if (valid) {
         try {
           const sbRecords = await sbFetch('/rest/v1/edl_records?select=id,data&order=data->>savedAt.desc');
-          if (Array.isArray(sbRecords)) {
-            records = sbRecords.map(r => ({ ...r.data, id: r.id }));
-          }
-        } catch(e) {
-          // Fallback sur IndexedDB si Supabase échoue
-          records = await dbGetAll('records').catch(() => []);
-        }
-      } else {
-        records = await dbGetAll('records').catch(() => []);
-      }
+          if (Array.isArray(sbRecords)) records = sbRecords.map(r => ({ ...r.data, id: r.id }));
+        } catch(e) { records = await dbGetAll('records').catch(() => []); }
+      } else { records = await dbGetAll('records').catch(() => []); }
     } else {
-      // En local (file://) ou pas connecté : charger depuis IndexedDB
       records = await dbGetAll('records');
     }
 
@@ -2188,17 +2185,8 @@ async function openViewer(id) {
 
 function viewerPrint() { const frame = document.getElementById('viewer-frame'); if (frame.contentWindow) frame.contentWindow.print(); }
 
-async function shareFromViewer() {
+function shareFromViewer() {
   const frame = document.getElementById('viewer-frame');
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  if (isIOS || isPWA || isMobile) {
-    alert('Le t\u00e9l\u00e9chargement PDF n\u2019est pas disponible sur iPhone.\n\nConnectez-vous sur la version web depuis un ordinateur pour t\u00e9l\u00e9charger votre rapport en PDF.');
-    return;
-  }
-
   if (frame._recordId) shareReport(frame._recordId);
 }
 
@@ -2208,11 +2196,8 @@ async function shareFromViewer() {
 
 
 async function shareReport(id) {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isIOS || isPWA || isMobile) {
-    alert('Le t\u00e9l\u00e9chargement PDF n\u2019est pas disponible sur iPhone.\n\nConnectez-vous sur la version web depuis un ordinateur pour t\u00e9l\u00e9charger votre rapport en PDF.');
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    alert('Le téléchargement PDF n’est pas disponible sur iPhone.\n\nConnectez-vous sur la version web depuis un ordinateur.');
     return;
   }
   try {
@@ -2264,38 +2249,21 @@ async function shareReport(id) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-    if (isIOS || isPWA) {
-      // Sur iOS/PWA : générer le PDF via Edge Function PDFShift
-      const genOverlay = document.getElementById('pdf-generating');
-      genOverlay.classList.add('show');
-      try {
-        const res = await fetch('https://nxjwocmidveiqspzgkmg.supabase.co/functions/v1/generate-pdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ html, filename })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.pdf) throw new Error(data.error || 'Erreur génération PDF');
-        // Convertir base64 en blob PDF et télécharger
-        const binary = atob(data.pdf);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
-        const pdfFile = new File([pdfBlob], filename + '.pdf', { type: 'application/pdf' });
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-          await navigator.share({ files: [pdfFile], title: 'État des lieux' });
-        } else {
-          const url = URL.createObjectURL(pdfBlob);
-          const a = document.createElement('a');
-          a.href = url; a.download = filename + '.pdf';
-          document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 30000);
-        }
-      } catch(err) {
-        if (err.name !== 'AbortError') alert('Erreur : ' + err.message);
-      } finally {
-        genOverlay.classList.remove('show');
-      }
+    if (isIOS) {
+      // Sur iOS : ouvrir dans un nouvel onglet Safari — partage natif ou "Enregistrer en PDF"
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      return;
+    }
+
+    if (isPWA) {
+      // Sur PWA non-iOS : ouvrir dans nouvel onglet
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
       return;
     }
 
@@ -2348,7 +2316,7 @@ async function shareReport(id) {
         'body{width:794px!important;margin:0!important;}',
         '.cover{min-height:0!important;height:auto!important;}',
         '.photos-wrap{display:grid!important;grid-template-columns:1fr 1fr!important;gap:16px!important;padding:16px 20px!important;}',
-        '.photo-block{padding:0!important;border-radius:8px!important;overflow:hidden!important;page-break-inside:avoid!important;break-inside:avoid!important;}',
+        '.photo-block{padding:0!important;border-radius:8px!important;overflow:hidden!important;}',
         '.photo-meta{padding:8px 10px!important;}',
         '.photo-img{display:none!important;}'
       ].join('');
@@ -2373,72 +2341,38 @@ async function shareReport(id) {
       const sections = iframeDoc.querySelectorAll('.cover, .page-break');
       let firstPage = true;
 
-      const pxToMm = 210 / 794;
-      const pageHeightPx = pageHeight / pxToMm;
-
       for (const section of sections) {
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: 794,
+          windowWidth: 794
+        });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pxToMm = 210 / 794;
+        const imgHeightMm = (canvas.height / 2) * pxToMm;
+
         if (!firstPage) pdf.addPage();
         firstPage = false;
 
-        // Capturer l'en-tête de section (room-header) séparément
-        const header = section.querySelector('.room-header, .cover-band');
-        const photosWrap = section.querySelector('.photos-wrap');
-        const otherContent = section.querySelector('.cover-body, .sig-section');
-
-        if (photosWrap && header) {
-          // Capturer l'en-tête
-          const headerCanvas = await html2canvas(header, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', width:794, windowWidth:794 });
-          const headerH = (headerCanvas.height / 2) * pxToMm;
-          let curY = 0;
-          pdf.addImage(headerCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, curY, pageWidth, headerH);
-          curY += headerH;
-
-          // Capturer chaque photo-block et éviter les coupures
-          const photoBlocks = photosWrap.querySelectorAll('.photo-block');
-          const rows = [];
-          for (let i = 0; i < photoBlocks.length; i += 2) {
-            rows.push([photoBlocks[i], photoBlocks[i+1]]);
-          }
-
-          for (const row of rows) {
-            // Créer un conteneur temporaire pour la rangée
-            const rowDiv = iframeDoc.createElement('div');
-            rowDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 20px;';
-            row.forEach(b => { if (b) rowDiv.appendChild(b.cloneNode(true)); });
-            photosWrap.parentNode.appendChild(rowDiv);
-
-            const rowCanvas = await html2canvas(rowDiv, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', width:794, windowWidth:794 });
-            photosWrap.parentNode.removeChild(rowDiv);
-
-            const rowH = (rowCanvas.height / 2) * pxToMm;
-
-            // Si la rangée ne tient pas sur la page courante, nouvelle page
-            if (curY + rowH > pageHeight - 5) {
-              pdf.addPage();
-              curY = 0;
-            }
-            pdf.addImage(rowCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, curY, pageWidth, rowH);
-            curY += rowH + 2;
-          }
+        if (imgHeightMm <= pageHeight) {
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeightMm);
         } else {
-          // Section sans grille de photos (cover, signatures) : capture normale
-          const canvas = await html2canvas(section, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', width:794, windowWidth:794 });
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
-          const imgHeightMm = (canvas.height / 2) * pxToMm;
-
-          if (imgHeightMm <= pageHeight) {
-            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeightMm);
-          } else {
-            let yPx = 0; let pageNum = 0;
-            while (yPx < canvas.height / 2) {
-              if (pageNum > 0) pdf.addPage();
-              const sliceH = Math.min(pageHeightPx, canvas.height / 2 - yPx);
-              const sliceCanvas = document.createElement('canvas');
-              sliceCanvas.width = canvas.width; sliceCanvas.height = sliceH * 2;
-              sliceCanvas.getContext('2d').drawImage(canvas, 0, yPx * 2, canvas.width, sliceH * 2, 0, 0, canvas.width, sliceH * 2);
-              pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWidth, sliceH * pxToMm);
-              yPx += sliceH; pageNum++;
-            }
+          const pageHeightPx = (pageHeight / pxToMm);
+          let yPx = 0;
+          let pageNum = 0;
+          while (yPx < canvas.height / 2) {
+            if (pageNum > 0) pdf.addPage();
+            const sliceH = Math.min(pageHeightPx, canvas.height / 2 - yPx);
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = sliceH * 2;
+            sliceCanvas.getContext('2d').drawImage(canvas, 0, yPx * 2, canvas.width, sliceH * 2, 0, 0, canvas.width, sliceH * 2);
+            pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWidth, sliceH * pxToMm);
+            yPx += sliceH;
+            pageNum++;
           }
         }
       }
@@ -2453,7 +2387,6 @@ async function shareReport(id) {
     if (e.name !== 'AbortError') { console.error(e); alert('Erreur : ' + e.message); }
   }
 }
-
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
