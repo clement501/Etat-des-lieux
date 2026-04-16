@@ -2204,7 +2204,11 @@ async function shareFromViewer() {
     try {
       const res = await fetch('https://nxjwocmidveiqspzgkmg.supabase.co/functions/v1/generate-pdf', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q'
+        },
         body: JSON.stringify({ html, filename })
       });
       const contentType = res.headers.get('content-type') || '';
