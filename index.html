@@ -2195,47 +2195,7 @@ async function shareFromViewer() {
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   if (isIOS || isPWA || isMobile) {
-    const html = frame._htmlContent;
-    if (!html) return;
-    const recordId = frame._recordId || 'rapport';
-    const filename = 'EDL_' + recordId;
-    const genOverlay = document.getElementById('pdf-generating');
-    genOverlay.classList.add('show');
-    try {
-      const res = await fetch('https://nxjwocmidveiqspzgkmg.supabase.co/functions/v1/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54andvY21pZHZlaXFzcHpna21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTEzOTcsImV4cCI6MjA5MTY2NzM5N30.lH-ca5QAdGwidi8XtdWbKSwZ2b-93SwAZXrF4yPE69Q'
-        },
-        body: JSON.stringify({ html, filename })
-      });
-      const contentType = res.headers.get('content-type') || '';
-      if (!res.ok || (!contentType.includes('pdf') && !contentType.includes('octet'))) {
-        const errText = await res.text().catch(() => '');
-        const isSizeError = errText.includes('2Mb') || errText.includes('more than') || errText.includes('2mb');
-        if (isSizeError) {
-          throw new Error('Les photos sont trop volumineuses pour iPhone.\n\nT\u00e9l\u00e9chargez le PDF depuis la version web sur ordinateur.');
-        }
-        throw new Error('Erreur g\u00e9n\u00e9ration PDF (' + res.status + ')');
-      }
-      const pdfBlob = await res.blob();
-      const pdfFile = new File([pdfBlob], filename + '.pdf', { type: 'application/pdf' });
-      genOverlay.classList.remove('show');
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        await navigator.share({ files: [pdfFile], title: 'État des lieux' });
-      } else {
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
-        a.href = url; a.download = filename + '.pdf';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
-      }
-    } catch(err) {
-      genOverlay.classList.remove('show');
-      if (err.name !== 'AbortError') alert('Erreur : ' + err.message);
-    }
+    alert('Le t\u00e9l\u00e9chargement PDF n\u2019est pas disponible sur iPhone.\n\nConnectez-vous sur la version web depuis un ordinateur pour t\u00e9l\u00e9charger votre rapport en PDF.');
     return;
   }
 
