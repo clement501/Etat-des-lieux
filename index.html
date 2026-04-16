@@ -514,6 +514,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <div class="modal-handle"></div>
     <img id="modal-photo-img" class="photo-modal-img" src="" alt=""/>
     <div class="etat-chips">
+      <button class="etat-chip" data-etat="Neuf" onclick="toggleEtat(this,'Neuf')">🌟 Neuf</button>
       <button class="etat-chip" data-etat="Bon état" onclick="toggleEtat(this,'Bon état')">✅ Bon état</button>
       <button class="etat-chip" data-etat="Usure normale" onclick="toggleEtat(this,'Usure normale')">🔶 Usure normale</button>
       <button class="etat-chip" data-etat="Dégradation" onclick="toggleEtat(this,'Dégradation')">🔴 Dégradation</button>
@@ -606,6 +607,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <div class="modal-handle"></div>
     <img id="cle-modal-photo-img" class="photo-modal-img" src="" alt=""/>
     <div class="etat-chips">
+      <button class="etat-chip" data-etat="Neuf" onclick="toggleCleEtat(this,'Neuf')">🌟 Neuf</button>
       <button class="etat-chip" data-etat="Bon état" onclick="toggleCleEtat(this,'Bon état')">✅ Bon état</button>
       <button class="etat-chip" data-etat="Usure normale" onclick="toggleCleEtat(this,'Usure normale')">🔶 Usure normale</button>
       <button class="etat-chip" data-etat="Dégradation" onclick="toggleCleEtat(this,'Dégradation')">🔴 Dégradation</button>
@@ -1234,7 +1236,7 @@ function renderRoomDetail() {
   document.getElementById('detail-sub').textContent = room.photos.length + ' photo' + (room.photos.length !== 1 ? 's' : '');
   var grid = document.getElementById('photos-grid');
   var html = '';
-  var etatColors = { 'Bon \u00e9tat':'#2e6b3e', 'Usure normale':'#92620a', 'D\u00e9gradation':'#b91c1c' };
+  var etatColors = { 'Neuf':'#0369a1', 'Bon état':'#2e6b3e', 'Usure normale':'#92620a', 'Dégradation':'#b91c1c' };
   for (var i = 0; i < room.photos.length; i++) {
     var photo = room.photos[i];
     var badge = photo.etat
@@ -1527,8 +1529,8 @@ async function generatePDF() {
 
 
 function buildRoomSection(room, typeColor) {
-  const etatBg = { 'Bonétat':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2' };
-  const etatCl = { 'Bonétat':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b' };
+  const etatBg = { 'Neuf':'#e0f2fe','Bon état':'#dcfce7','Usure normale':'#fef3c7','Dégradation':'#fee2e2' };
+  const etatCl = { 'Neuf':'#0369a1','Bon état':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b' };
   const chunks = [];
   if (room.photos.length === 0) chunks.push([]);
   else for (let i = 0; i < room.photos.length; i += 6) chunks.push(room.photos.slice(i, i+6));
