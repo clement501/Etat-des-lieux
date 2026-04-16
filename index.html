@@ -700,6 +700,26 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
+
+<div class="modal-overlay" id="sig-fullscreen-modal" style="z-index:1000;">
+  <div style="background:var(--white);width:100%;height:100%;display:flex;flex-direction:column;padding:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--dark);" id="sig-fs-name"></div>
+        <div style="font-size:12px;color:var(--muted);" id="sig-fs-role"></div>
+      </div>
+      <button onclick="document.getElementById('sig-fullscreen-modal').classList.remove('open')" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--dark);touch-action:manipulation;">✕ Fermer</button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;padding:20px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center;">Signez dans le cadre ci-dessous</div>
+      <canvas id="sig-fs-canvas" style="flex:1;border:2px solid var(--border);border-radius:12px;background:white;touch-action:none;width:100%;"></canvas>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button onclick="clearFullscreenCanvas()" style="flex:1;padding:14px;background:none;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;color:var(--dark);">✕ Effacer</button>
+        <button onclick="validateFullscreenSig()" style="flex:2;padding:14px;background:var(--sage);border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;color:white;">✓ Valider la signature</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 // ─── SUPABASE ─────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://nxjwocmidveiqspzgkmg.supabase.co';
@@ -1347,6 +1367,9 @@ function renderSignatures() {
         <div class="sig-block-header">
           <div><div class="sig-block-name">${s.name}</div><div class="sig-block-role">${s.role}</div></div>
           <span class="sig-status">En attente</span>
+          <button onclick="openFullscreenSig('${s.key}', '${s.name}', '${s.role}')" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:5px 8px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;" title="Agrandir">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </button>
         </div>
         <div class="sig-canvas-wrap">
           <canvas class="sig-canvas" id="canvas-${s.key}" width="600" height="140"></canvas>
@@ -1383,6 +1406,63 @@ function initCanvas(canvasId) {
   canvas.addEventListener('touchstart', start, { passive: false }); canvas.addEventListener('touchmove', move, { passive: false });
   canvas.addEventListener('touchend', end, { passive: false });
   canvas._hasDrawn = () => hasDrawn;
+}
+
+function openFullscreenSig(key, name, role) {
+  const modal = document.getElementById('sig-fullscreen-modal');
+  document.getElementById('sig-fs-name').textContent = name;
+  document.getElementById('sig-fs-role').textContent = role;
+  modal.dataset.sigKey = key;
+  modal.classList.add('open');
+  setTimeout(() => initFullscreenCanvas(key), 100);
+}
+
+function initFullscreenCanvas(key) {
+  const canvas = document.getElementById('sig-fs-canvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.strokeStyle = '#1a1714'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  let drawing = false, hasDrawn = false;
+  // Vider les anciens listeners
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+  const c = document.getElementById('sig-fs-canvas');
+  const cx = c.getContext('2d');
+  const r2 = c.getBoundingClientRect();
+  c.width = r2.width * window.devicePixelRatio;
+  c.height = r2.height * window.devicePixelRatio;
+  cx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  cx.strokeStyle = '#1a1714'; cx.lineWidth = 2.5; cx.lineCap = 'round'; cx.lineJoin = 'round';
+  function getPos(e) { const r = c.getBoundingClientRect(); const src = e.touches ? e.touches[0] : e; return { x: src.clientX - r.left, y: src.clientY - r.top }; }
+  function start(e) { e.preventDefault(); drawing = true; const p = getPos(e); cx.beginPath(); cx.moveTo(p.x, p.y); }
+  function move(e) { e.preventDefault(); if (!drawing) return; hasDrawn = true; const p = getPos(e); cx.lineTo(p.x, p.y); cx.stroke(); }
+  function end(e) { e.preventDefault(); drawing = false; }
+  c.addEventListener('mousedown', start); c.addEventListener('mousemove', move);
+  c.addEventListener('mouseup', end); c.addEventListener('mouseleave', end);
+  c.addEventListener('touchstart', start, { passive: false }); c.addEventListener('touchmove', move, { passive: false });
+  c.addEventListener('touchend', end, { passive: false });
+  c._hasDrawn = () => hasDrawn;
+}
+
+function clearFullscreenCanvas() {
+  const c = document.getElementById('sig-fs-canvas');
+  c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  c._hasDrawn = () => false;
+}
+
+function validateFullscreenSig() {
+  const modal = document.getElementById('sig-fullscreen-modal');
+  const key = modal.dataset.sigKey;
+  const c = document.getElementById('sig-fs-canvas');
+  if (!c._hasDrawn || !c._hasDrawn()) { alert('Merci de dessiner votre signature avant de valider.'); return; }
+  const lieuInput = document.getElementById('input-sig-lieu');
+  if (lieuInput) state.sigLieu = lieuInput.value.trim();
+  state.signatures[key] = c.toDataURL('image/png');
+  modal.classList.remove('open');
+  renderSignatures();
 }
 function clearCanvas(key) {
   const canvas = document.getElementById(`canvas-${key}`); if (!canvas) return;
