@@ -2210,7 +2210,7 @@ async function shareFromViewer() {
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok || (!contentType.includes('pdf') && !contentType.includes('octet'))) {
         const errText = await res.text().catch(() => 'Erreur inconnue');
-        let errMsg = 'Erreur génération PDF';
+        let errMsg = 'Statut ' + res.status + ' - ' + errText.slice(0, 200);
         try { errMsg = JSON.parse(errText).error || errMsg; } catch(e) {}
         throw new Error(errMsg);
       }
