@@ -1417,53 +1417,43 @@ function openFullscreenSig(key, name, role) {
   setTimeout(() => initFullscreenCanvas(key), 100);
 }
 
+// Variable globale pour tracker si le canvas plein écran a été dessiné
+let _fsDrawn = false;
+let _fsDrawing = false;
+
 function initFullscreenCanvas(key) {
+  _fsDrawn = false;
+  _fsDrawing = false;
   const c = document.getElementById('sig-fs-canvas');
   const rect = c.getBoundingClientRect();
   c.width = rect.width * window.devicePixelRatio;
   c.height = rect.height * window.devicePixelRatio;
   const cx = c.getContext('2d');
   cx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  cx.strokeStyle = '#1a1714'; cx.lineWidth = 2.5; cx.lineCap = 'round'; cx.lineJoin = 'round';
-  let drawing = false;
-  c._fsHasDrawn = false;
-  // Supprimer anciens listeners via flag
-  c._fsInitialized = true;
+  cx.clearRect(0, 0, c.width, c.height);
+  cx.strokeStyle = '#1a1714'; cx.lineWidth = 3; cx.lineCap = 'round'; cx.lineJoin = 'round';
+  // Utiliser onmousedown etc. directement pour éviter les doublons
   function getPos(e) { const r = c.getBoundingClientRect(); const src = e.touches ? e.touches[0] : e; return { x: src.clientX - r.left, y: src.clientY - r.top }; }
-  function start(e) { e.preventDefault(); drawing = true; const p = getPos(e); cx.beginPath(); cx.moveTo(p.x, p.y); }
-  function move(e) { e.preventDefault(); if (!drawing) return; c._fsHasDrawn = true; const p = getPos(e); cx.lineTo(p.x, p.y); cx.stroke(); }
-  function end(e) { e.preventDefault(); drawing = false; }
-  // Remplacer le canvas pour supprimer les anciens listeners
-  const newC = c.cloneNode(false);
-  c.parentNode.replaceChild(newC, c);
-  const fc = document.getElementById('sig-fs-canvas');
-  const fcx = fc.getContext('2d');
-  fc.width = rect.width * window.devicePixelRatio;
-  fc.height = rect.height * window.devicePixelRatio;
-  fcx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  fcx.strokeStyle = '#1a1714'; fcx.lineWidth = 2.5; fcx.lineCap = 'round'; fcx.lineJoin = 'round';
-  fc._fsHasDrawn = false;
-  function getPos2(e) { const r = fc.getBoundingClientRect(); const src = e.touches ? e.touches[0] : e; return { x: src.clientX - r.left, y: src.clientY - r.top }; }
-  function start2(e) { e.preventDefault(); drawing = true; const p = getPos2(e); fcx.beginPath(); fcx.moveTo(p.x, p.y); }
-  function move2(e) { e.preventDefault(); if (!drawing) return; fc._fsHasDrawn = true; const p = getPos2(e); fcx.lineTo(p.x, p.y); fcx.stroke(); }
-  function end2(e) { e.preventDefault(); drawing = false; }
-  fc.addEventListener('mousedown', start2); fc.addEventListener('mousemove', move2);
-  fc.addEventListener('mouseup', end2); fc.addEventListener('mouseleave', end2);
-  fc.addEventListener('touchstart', start2, { passive: false }); fc.addEventListener('touchmove', move2, { passive: false });
-  fc.addEventListener('touchend', end2, { passive: false });
+  c.onmousedown = function(e) { _fsDrawing = true; const p = getPos(e); cx.beginPath(); cx.moveTo(p.x, p.y); };
+  c.onmousemove = function(e) { if (!_fsDrawing) return; _fsDrawn = true; const p = getPos(e); cx.lineTo(p.x, p.y); cx.stroke(); };
+  c.onmouseup = function() { _fsDrawing = false; };
+  c.onmouseleave = function() { _fsDrawing = false; };
+  c.ontouchstart = function(e) { e.preventDefault(); _fsDrawing = true; const p = getPos(e); cx.beginPath(); cx.moveTo(p.x, p.y); };
+  c.ontouchmove = function(e) { e.preventDefault(); if (!_fsDrawing) return; _fsDrawn = true; const p = getPos(e); cx.lineTo(p.x, p.y); cx.stroke(); };
+  c.ontouchend = function(e) { e.preventDefault(); _fsDrawing = false; };
 }
 
 function clearFullscreenCanvas() {
+  _fsDrawn = false;
   const c = document.getElementById('sig-fs-canvas');
   c.getContext('2d').clearRect(0, 0, c.width, c.height);
-  c._fsHasDrawn = false;
 }
 
 function validateFullscreenSig() {
   const modal = document.getElementById('sig-fullscreen-modal');
   const key = modal.dataset.sigKey;
   const c = document.getElementById('sig-fs-canvas');
-  if (!c._fsHasDrawn) { alert('Merci de dessiner votre signature avant de valider.'); return; }
+  if (!_fsDrawn) { alert('Merci de dessiner votre signature avant de valider.'); return; }
   const lieuInput = document.getElementById('input-sig-lieu');
   if (lieuInput) state.sigLieu = lieuInput.value.trim();
   state.signatures[key] = c.toDataURL('image/png');
