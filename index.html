@@ -734,6 +734,15 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
+
+<div class="modal-overlay" id="admin-list-modal">
+  <div class="modal-sheet" style="max-height:80vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div id="admin-list-title" style="font-size:16px;font-weight:700;color:var(--dark);margin-bottom:16px;"></div>
+    <div id="admin-list-content"></div>
+    <button onclick="closeModal('admin-list-modal')" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:12px;color:var(--dark);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;margin-top:12px;">Fermer</button>
+  </div>
+</div>
 <script>async function renderAdmin() {
   const container = document.getElementById('admin-content');
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>';
@@ -764,6 +773,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     const cancelling = profiles.filter(p => p.cancel_at_period_end).length;
     const weekAgo = new Date(Date.now() - 7*24*60*60*1000);
     const newUsers = profiles.filter(p => new Date(p.created_at) > weekAgo).length;
+    window.adminProfiles = {};
     const mrr = data.mrr ? (data.mrr / 100).toFixed(2) : '0.00';
     const totalRevenue = data.total_revenue ? (data.total_revenue / 100).toFixed(2) : '0.00';
     const activesSubs = data.active_subscriptions || 0;
@@ -772,13 +782,14 @@ input:focus,textarea:focus{border-color:var(--rust);}
       .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 8);
 
+    const weekAgoTs = weekAgo.getTime();
     const cards = [
-      { label: 'Comptes total', value: total, color: 'var(--rust)' },
-      { label: 'Nouveaux (7j)', value: newUsers, color: 'var(--sage)' },
-      { label: 'Abonnés actifs', value: activesSubs, color: '#0369a1' },
-      { label: 'En résiliation', value: cancelling, color: '#92400e' },
-      { label: 'Total EDL', value: totalEdl, color: 'var(--rust)' },
-      { label: 'Comptes trial', value: trial, color: '#6b7280' },
+      { label: 'Comptes total', value: total, color: 'var(--rust)', users: profiles },
+      { label: 'Nouveaux (7j)', value: newUsers, color: 'var(--sage)', users: profiles.filter(p => new Date(p.created_at).getTime() > weekAgoTs) },
+      { label: 'Abonnés actifs', value: activesSubs, color: '#0369a1', users: profiles.filter(p => p.plan === 'particulier' && !p.cancel_at_period_end) },
+      { label: 'En résiliation', value: cancelling, color: '#92400e', users: profiles.filter(p => p.cancel_at_period_end) },
+      { label: 'Total EDL', value: totalEdl, color: 'var(--rust)', users: null },
+      { label: 'Comptes trial', value: trial, color: '#6b7280', users: profiles.filter(p => p.plan === 'trial') },
     ];
 
     const planBars = [
@@ -789,10 +800,14 @@ input:focus,textarea:focus{border-color:var(--rust);}
 
     let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">';
     cards.forEach(c => {
-      html += '<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;">'
+      const clickable = c.users !== null;
+      const onclick = clickable ? 'onclick="showAdminList(\'' + c.label + '\', adminProfiles[\''+c.label+'\'])"' : '';
+      html += '<div ' + onclick + ' style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
             + '<div style="font-size:28px;font-weight:700;color:' + c.color + ';">' + c.value + '</div>'
             + '<div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;">' + c.label + '</div>'
             + '</div>';
+      if (clickable) window['adminProfiles'] = window['adminProfiles'] || {};
+      if (clickable) window['adminProfiles'][c.label] = c.users;
     });
     html += '</div>';
 
