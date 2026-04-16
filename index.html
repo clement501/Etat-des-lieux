@@ -1453,7 +1453,7 @@ function buildRoomSection(room, typeColor) {
   const etatCl = { 'Bonétat':'#166534','Usure normale':'#92400e','Dégradation':'#991b1b' };
   const chunks = [];
   if (room.photos.length === 0) chunks.push([]);
-  else for (let i = 0; i < room.photos.length; i += 4) chunks.push(room.photos.slice(i, i+4));
+  else for (let i = 0; i < room.photos.length; i += 6) chunks.push(room.photos.slice(i, i+6));
   return chunks.map((chunk, ci) => {
     const photosHTML = chunk.length === 0
       ? '<div style="padding:16px 20px;color:#8c7b6b;font-style:italic;font-size:11px;">Aucune photo</div>'
