@@ -851,6 +851,15 @@ input:focus,textarea:focus{border-color:var(--rust);}
     html += '</div>';
 
     container.innerHTML = html;
+
+    // Ajouter les listeners sur les cartes après injection du HTML
+    container.querySelectorAll('[data-admin-card]').forEach(card => {
+      card.addEventListener('click', function() {
+        const label = card.querySelector('div:last-child').textContent;
+        const users = window._adminLists && window._adminLists[label];
+        if (users !== undefined) showAdminList(label, users);
+      });
+    });
   } catch(e) {
     container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rust)">Erreur : ' + e.message + '</div>';
   }
@@ -1070,17 +1079,7 @@ function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
   if (screenId === 'profil') renderProfil();
-  if (screenId === 'admin') {
-    renderAdmin();
-    document.getElementById('admin-content').addEventListener('click', function(e) {
-      const card = e.target.closest('[data-admin-card]');
-      if (!card) return;
-      const idx = parseInt(card.getAttribute('data-admin-card'));
-      const label = card.querySelector('div:last-child').textContent;
-      const users = window._adminLists && window._adminLists[label];
-      if (users !== undefined) showAdminList(label, users);
-    });
-  }
+  if (screenId === 'admin') renderAdmin();
 }
 
 async function newEdl() {
