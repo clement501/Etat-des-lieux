@@ -294,6 +294,11 @@ input:focus,textarea:focus{border-color:var(--rust);}
       <div id="profil-pwd-msg" style="display:none;font-size:13px;padding:8px 12px;border-radius:8px;margin-bottom:12px;"></div>
       <button class="btn-modal-confirm" onclick="profilChangePassword()" style="width:100%">Modifier le mot de passe</button>
     </div>
+    <div id="btn-admin-dashboard" style="display:none;margin-bottom:12px;">
+      <button onclick="goTo('admin')" style="width:100%;padding:16px;background:var(--dark);border:none;border-radius:14px;color:white;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;">
+        📊 Dashboard Admin
+      </button>
+    </div>
     <button onclick="authLogout()" style="width:100%;padding:16px;background:none;border:1.5px solid #e5c5c5;border-radius:14px;color:var(--rust);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;margin-bottom:12px;">
       Se déconnecter
     </button>
@@ -722,6 +727,19 @@ input:focus,textarea:focus{border-color:var(--rust);}
     </div>
   </div>
 </div>
+
+<div class="screen" id="admin">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('profil')">←</button>
+    <div><div class="top-bar-title">Dashboard Admin</div></div>
+    <div></div>
+  </div>
+  <div class="rooms-body" style="padding:16px;">
+    <div id="admin-content">
+      <div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>
+    </div>
+  </div>
+</div>
 <script>
 // ─── SUPABASE ─────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://nxjwocmidveiqspzgkmg.supabase.co';
@@ -938,6 +956,7 @@ function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
   if (screenId === 'profil') renderProfil();
+  if (screenId === 'admin') renderAdmin();
 }
 
 async function newEdl() {
@@ -1880,6 +1899,9 @@ async function renderProfil() {
   const user = getCurrentUser();
   const el = document.getElementById('profil-email');
   if (el && user) el.textContent = user.email || '—';
+  // Bouton admin uniquement pour clarviset@outlook.fr
+  const adminBtn = document.getElementById('btn-admin-dashboard');
+  if (adminBtn) adminBtn.style.display = (user && user.email === 'clarviset@outlook.fr') ? 'block' : 'none';
   document.getElementById('profil-new-password').value = '';
   document.getElementById('profil-confirm-password').value = '';
   const msg = document.getElementById('profil-pwd-msg');
