@@ -1445,8 +1445,10 @@ function initFullscreenCanvas(key) {
 
 function clearFullscreenCanvas() {
   _fsDrawn = false;
-  const c = document.getElementById('sig-fs-canvas');
-  c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  const modal = document.getElementById('sig-fullscreen-modal');
+  const key = modal.dataset.sigKey;
+  // Réinitialiser complètement le canvas
+  initFullscreenCanvas(key);
 }
 
 function validateFullscreenSig() {
