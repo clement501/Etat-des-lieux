@@ -805,8 +805,8 @@ input:focus,textarea:focus{border-color:var(--rust);}
     let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">';
     cards.forEach(function(c, i) {
       const clickable = c.users !== null;
-      const onclickAttr = clickable ? ' onclick="adminCardClick(' + i + ')"' : '';
-      html += '<div' + onclickAttr + ' style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
+      const dataAttr = clickable ? ' data-admin-idx="' + i + '"' : '';
+      html += '<div' + dataAttr + ' style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;' + (clickable ? 'cursor:pointer;' : '') + '">'
             + '<div style="font-size:28px;font-weight:700;color:' + c.color + ';">' + c.value + '</div>'
             + '<div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;">' + c.label + '</div>'
             + '</div>';
@@ -853,6 +853,13 @@ input:focus,textarea:focus{border-color:var(--rust);}
 
     container.innerHTML = html;
 
+    container.querySelectorAll('[data-admin-idx]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var i = parseInt(el.getAttribute('data-admin-idx'));
+        var item = window._adminLists && window._adminLists[i];
+        if (item) showAdminList(item.label, item.users);
+      });
+    });
 
   } catch(e) {
     container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rust)">Erreur : ' + e.message + '</div>';
