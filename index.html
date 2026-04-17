@@ -743,6 +743,17 @@ input:focus,textarea:focus{border-color:var(--rust);}
     <button onclick="closeModal('admin-list-modal')" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:12px;color:var(--dark);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;margin-top:12px;">Fermer</button>
   </div>
 </div>
+
+<div class="screen" id="admin-list">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goTo('admin')" id="admin-list-back">←</button>
+    <div><div class="top-bar-title" id="admin-list-title">Liste</div></div>
+    <div></div>
+  </div>
+  <div class="rooms-body" style="padding:16px;padding-bottom:40px;overflow-y:scroll;-webkit-overflow-scrolling:touch;height:calc(100vh - 60px);">
+    <div id="admin-list-content"></div>
+  </div>
+</div>
 <script>async function renderAdmin() {
   const container = document.getElementById('admin-content');
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Chargement…</div>';
@@ -878,8 +889,16 @@ input:focus,textarea:focus{border-color:var(--rust);}
           + 'th{background:#f5f0e8;padding:10px 16px;text-align:left;font-size:13px;color:#555;}</style></head>'
           + '<body><h1>' + item.label + ' (' + sorted.length + ')</h1>'
           + '<table><thead><tr><th>Email</th><th>Plan</th><th>Inscrit le</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>';
-        var blob = new Blob([html], { type: 'text/html' });
-        window.open(URL.createObjectURL(blob), '_blank');
+        // Afficher dans l'écran admin-list
+        document.getElementById('admin-list-title').textContent = item.label + ' (' + sorted.length + ')';
+        var listContent = document.getElementById('admin-list-content');
+        listContent.innerHTML = '<table style="width:100%;border-collapse:collapse;background:var(--white);border-radius:12px;overflow:hidden;border:1.5px solid var(--border);">'
+          + '<thead><tr>'
+          + '<th style="background:var(--warm);padding:10px 16px;text-align:left;font-size:12px;color:var(--muted);">Email</th>'
+          + '<th style="background:var(--warm);padding:10px 16px;text-align:left;font-size:12px;color:var(--muted);">Plan</th>'
+          + '<th style="background:var(--warm);padding:10px 16px;text-align:left;font-size:12px;color:var(--muted);">Inscrit</th>'
+          + '</tr></thead><tbody>' + rows + '</tbody></table>';
+        goTo('admin-list');
       });
     });
 
