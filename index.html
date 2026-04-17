@@ -864,11 +864,10 @@ input:focus,textarea:focus{border-color:var(--rust);}
 
     container.innerHTML = html;
 
-    var _lists = window._adminLists;
     container.querySelectorAll('[data-admin-idx]').forEach(function(el) {
       el.addEventListener('click', function() {
         var i = parseInt(el.getAttribute('data-admin-idx'));
-        var item = _lists && _lists[i];
+        var item = window._adminLists && window._adminLists[i];
         if (!item || !item.users) return;
         var users = item.users;
         document.getElementById('admin-list-title').textContent = item.label + ' (' + users.length + ')';
