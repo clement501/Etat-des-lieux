@@ -786,7 +786,7 @@ input:focus,textarea:focus{border-color:var(--rust);}
     const cards = [
       { label: 'Comptes total', value: total, color: 'var(--rust)', users: profiles },
       { label: 'Nouveaux (7j)', value: newUsers, color: 'var(--sage)', users: profiles.filter(p => new Date(p.created_at).getTime() > weekAgoTs) },
-      { label: 'Abonnés actifs', value: activesSubs, color: '#0369a1', users: profiles.filter(p => p.plan === 'particulier' && !p.cancel_at_period_end) },
+      { label: 'Abonnés actifs', value: particulier, color: '#0369a1', users: profiles.filter(p => p.plan === 'particulier') },
       { label: 'En résiliation', value: cancelling, color: '#92400e', users: profiles.filter(p => p.cancel_at_period_end) },
       { label: 'Total EDL', value: totalEdl, color: 'var(--rust)', users: null },
       { label: 'Comptes trial', value: trial, color: '#6b7280', users: profiles.filter(p => p.plan === 'trial') },
