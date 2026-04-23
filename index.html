@@ -870,28 +870,26 @@ input:focus,textarea:focus{border-color:var(--rust);}
         var item = window._adminLists && window._adminLists[i];
         if (!item || !item.users) return;
         var users = item.users;
-        document.getElementById('admin-list-title').textContent = item.label + ' (' + users.length + ')';
-        var listContent = document.getElementById('admin-list-content');
-        if (users.length === 0) {
-          listContent.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">Aucun compte</div>';
-        } else {
-          var sorted = users.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
-          var html2 = '<div style="display:flex;flex-direction:column;">';
-          sorted.forEach(function(u) {
-            var planColor = u.plan==='particulier'?'#dbeafe':u.plan==='unlimited'?'#dcfce7':'#f3f4f6';
-            var planText = u.plan==='particulier'?'#0369a1':u.plan==='unlimited'?'#166534':'#6b7280';
-            var date = new Date(u.created_at).toLocaleDateString('fr-FR');
-            var cancel = u.cancel_at_period_end ? ' ⏳' : '';
-            html2 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">'
-              + '<div><div style="font-size:13px;color:var(--dark);font-weight:500;">' + u.email + '</div>'
-              + '<div style="font-size:11px;color:var(--muted);">Inscrit le ' + date + '</div></div>'
-              + '<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:' + planColor + ';color:' + planText + ';white-space:nowrap;">' + u.plan + cancel + '</span>'
-              + '</div>';
-          });
-          html2 += '</div>';
-          listContent.innerHTML = html2;
-        }
-        goTo('admin-list');
+        var sorted = users.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
+        var rows = sorted.length === 0
+          ? '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Aucun compte</td></tr>'
+          : sorted.map(function(u) {
+              var planColor = u.plan==='particulier'?'#dbeafe':u.plan==='unlimited'?'#dcfce7':'#f3f4f6';
+              var planText = u.plan==='particulier'?'#0369a1':u.plan==='unlimited'?'#166534':'#6b7280';
+              var date = new Date(u.created_at).toLocaleDateString('fr-FR');
+              var cancel = u.cancel_at_period_end ? ' ⏳' : '';
+              return '<tr><td style="padding:10px 16px;border-bottom:1px solid #eee;">' + u.email + '</td>'
+                   + '<td style="padding:10px 16px;border-bottom:1px solid #eee;"><span style="background:' + planColor + ';color:' + planText + ';padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">' + u.plan + cancel + '</span></td>'
+                   + '<td style="padding:10px 16px;border-bottom:1px solid #eee;color:#888;font-size:12px;">' + date + '</td></tr>';
+            }).join('');
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + item.label + '</title>'
+          + '<style>body{font-family:sans-serif;margin:0;padding:20px;background:#f9f9f9;}'
+          + 'h1{font-size:20px;margin-bottom:16px;}table{width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);}'
+          + 'th{background:#f5f0e8;padding:10px 16px;text-align:left;font-size:13px;color:#555;}</style></head>'
+          + '<body><h1>' + item.label + ' (' + sorted.length + ')</h1>'
+          + '<table><thead><tr><th>Email</th><th>Plan</th><th>Inscrit le</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>';
+        var blob = new Blob([html], { type: 'text/html' });
+        window.open(URL.createObjectURL(blob), '_blank');
       });
     });
 
