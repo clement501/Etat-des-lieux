@@ -223,6 +223,22 @@ input:focus,textarea:focus{border-color:var(--rust);}
       </button>
     </div>
 
+    <!-- Formulaire nouveau mot de passe (lien de réinitialisation) -->
+    <div id="reset-form-block" style="display:none;width:100%;max-width:360px;flex-direction:column;gap:12px;">
+      <div style="font-size:15px;font-weight:700;text-align:center;">Choisissez un nouveau mot de passe</div>
+      <div class="form-group" style="margin:0">
+        <label>Nouveau mot de passe</label>
+        <input type="password" id="reset-password" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Confirmer le mot de passe</label>
+        <input type="password" id="reset-confirm" placeholder="Répétez le mot de passe" autocomplete="new-password"/>
+      </div>
+      <button class="btn-home primary" id="btn-reset" onclick="submitNewPassword()" style="justify-content:center;margin-top:4px">
+        Enregistrer le mot de passe
+      </button>
+    </div>
+
     <!-- Message confirmation email -->
     <div id="signup-confirm-msg" style="display:none;width:100%;max-width:360px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:16px;padding:24px;text-align:center;">
       <div style="font-size:36px;margin-bottom:12px;">📬</div>
@@ -939,7 +955,7 @@ async function showForgotPassword() {
     errEl.style.display = 'block'; return;
   }
   try {
-    await sbFetch('/auth/v1/recover', {
+    await sbFetch('/auth/v1/recover?redirect_to=' + encodeURIComponent('https://clement501.github.io/Etat-des-lieux/'), {
       method: 'POST',
       body: JSON.stringify({ email })
     });
@@ -950,6 +966,47 @@ async function showForgotPassword() {
     errEl.textContent = 'Erreur : ' + e.message;
     errEl.style.background = '#fef2ee'; errEl.style.color = 'var(--rust)';
     errEl.style.display = 'block';
+  }
+}
+
+// ─── RÉINITIALISATION DU MOT DE PASSE (lien reçu par email) ───────
+let recoverySession = null;
+
+function showResetForm() {
+  document.getElementById('login-form-block').style.display = 'none';
+  document.getElementById('reset-form-block').style.display = 'flex';
+}
+
+async function submitNewPassword() {
+  const errEl = document.getElementById('auth-error');
+  const pwd = document.getElementById('reset-password').value;
+  const confirm = document.getElementById('reset-confirm').value;
+  errEl.style.background = '#fef2ee'; errEl.style.color = 'var(--rust)';
+  errEl.style.display = 'none';
+  if (!recoverySession) { errEl.textContent = 'Lien invalide. Redemandez un email de réinitialisation.'; errEl.style.display = 'block'; return; }
+  if (pwd.length < 6) { errEl.textContent = 'Le mot de passe doit faire au moins 6 caractères.'; errEl.style.display = 'block'; return; }
+  if (pwd !== confirm) { errEl.textContent = 'Les deux mots de passe ne sont pas identiques.'; errEl.style.display = 'block'; return; }
+  document.getElementById('btn-reset').textContent = 'Enregistrement…';
+  try {
+    const user = await sbFetch('/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
+      body: JSON.stringify({ password: pwd })
+    });
+    const session = { ...recoverySession, user };
+    recoverySession = null;
+    setSession(session);
+    await ensureProfile(user);
+    document.getElementById('reset-form-block').style.display = 'none';
+    document.getElementById('login-form-block').style.display = '';
+    document.getElementById('reset-password').value = '';
+    document.getElementById('reset-confirm').value = '';
+    goTo('home');
+  } catch(e) {
+    errEl.textContent = 'Erreur : ' + e.message;
+    errEl.style.display = 'block';
+  } finally {
+    document.getElementById('btn-reset').textContent = 'Enregistrer le mot de passe';
   }
 }
 
@@ -2710,6 +2767,30 @@ function locEmail(l) { return typeof l === 'object' ? (l.email || '') : ''; }
 
 // Vérifier session au démarrage
 (async function() {
+  // Lien de réinitialisation du mot de passe reçu par email
+  const hp = new URLSearchParams(location.hash.replace(/^#/, ''));
+  if (hp.get('type') === 'recovery' && hp.get('access_token')) {
+    const expiresIn = parseInt(hp.get('expires_in') || '3600', 10);
+    recoverySession = {
+      access_token: hp.get('access_token'),
+      refresh_token: hp.get('refresh_token'),
+      token_type: 'bearer',
+      expires_in: expiresIn,
+      expires_at: Math.floor(Date.now()/1000) + expiresIn
+    };
+    history.replaceState({}, '', location.pathname + location.search);
+    goTo('login');
+    showResetForm();
+    return;
+  }
+  if (hp.get('error_code')) {
+    history.replaceState({}, '', location.pathname + location.search);
+    goTo('login');
+    const errEl = document.getElementById('auth-error');
+    errEl.textContent = 'Ce lien a expiré ou a déjà été utilisé. Entrez votre email puis cliquez sur "Mot de passe oublié" pour en recevoir un nouveau.';
+    errEl.style.display = 'block';
+    return;
+  }
   const valid = await refreshSession();
   if (valid && getCurrentUser()) {
     goTo('home');
